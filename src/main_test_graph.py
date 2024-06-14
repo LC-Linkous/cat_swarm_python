@@ -180,8 +180,6 @@ class TestGraph():
 
 
     def run(self):
-        time.sleep(2)
-
         # instantiation of particle swarm optimizer 
         while not self.mySwarm.complete():
 
