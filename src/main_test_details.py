@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 4, 2024
+#   Last update: June 14, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -71,9 +71,7 @@ class TestDetails():
                                         #  Includes error messages and warnings)
 
         self.allow_update = True      # Allow objective call to update state 
-                                        # (Can be set on each iteration to allow 
-                                        # for when control flow can be returned 
-                                        # to multiglods)
+
 
 
         self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,

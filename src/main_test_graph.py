@@ -43,7 +43,7 @@ class TestGraph():
         E_TOL = 10 ** -4             # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
-                                    #              3 = absorbing,   4 = invisible 
+                                     #              3 = absorbing,   4 = invisible 
         
         # cat swarm specific
         MR = .02                    # Mixture Ratio (MR). Small value for tracing population %.
@@ -76,9 +76,7 @@ class TestGraph():
                                         #  Includes error messages and warnings)
 
         self.allow_update = True      # Allow objective call to update state 
-                                        # (Can be set on each iteration to allow 
-                                        # for when control flow can be returned 
-                                        # to multiglods)
+
 
 
         self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
@@ -208,7 +206,7 @@ class TestGraph():
         print("Optimized Outputs")
         print(self.mySwarm.get_optimized_outs())
 
-        time.sleep(15)
+        time.sleep(15) #keep the window open for 15 seconds before ending program
 
 if __name__ == "__main__":
     pso = TestGraph()
