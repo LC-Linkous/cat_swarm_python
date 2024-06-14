@@ -12,7 +12,7 @@
 #       matplotlib plot of particle location
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 4, 2024
+#   Last update: June 14, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -26,6 +26,8 @@ import configs_F as func_configs
 
 class TestGraph():
     def __init__(self):
+        self.ctr = 0
+
         # Objective function dependent variables
         func_F = func_configs.OBJECTIVE_FUNC  # objective function
         constr_F = func_configs.CONSTR_FUNC   # constraint function
@@ -91,7 +93,7 @@ class TestGraph():
         self.fig = plt.figure(figsize=(10, 5))#(figsize=(14, 7))
         # position
         self.ax1 = self.fig.add_subplot(121, projection='3d')
-        self.ax1.set_title("Particle Location")
+        self.ax1.set_title("Particle Location, Iteration: " + str(self.ctr))
         self.ax1.set_xlabel('X')
         self.ax1.set_ylabel('Y')
         self.ax1.set_zlabel('Z')
@@ -135,13 +137,13 @@ class TestGraph():
         
         # MOVEMENT PLOT
         if np.shape(m_coords)[0] == 2: #2-dim func
-            self.ax1.set_title("Particle Location")
+            self.ax1.set_title("Particle Location, Iteration: " + str(self.ctr))
             self.ax1.set_xlabel("$x_1$")
             self.ax1.set_ylabel("$x_2$")
             self.scatter = self.ax1.scatter(m_coords[0, :], m_coords[1, :], edgecolors='b')
 
         elif np.shape(m_coords)[0] == 3: #3-dim func
-            self.ax1.set_title("Particle Location")
+            self.ax1.set_title("Particle Location, Iteration: " + str(self.ctr))
             self.ax1.set_xlabel("$x_1$")
             self.ax1.set_ylabel("$x_2$")
             self.ax1.set_zlabel("$x_3$")
@@ -173,6 +175,7 @@ class TestGraph():
 
 
         plt.pause(0.0001)  # Pause to update the plot
+        self.ctr = self.ctr + 1
 
 
 
