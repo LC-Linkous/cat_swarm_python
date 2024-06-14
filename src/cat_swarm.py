@@ -9,7 +9,7 @@
 #       
 #
 #   Author(s): Lauren Linkous
-#   Last update: June 4, 2024
+#   Last update: June 14, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -325,7 +325,7 @@ class swarm:
         # and may cause a buffer overflow with large exponents (a bug that was found experimentally)
         update = self.check_bounds(particle) or not self.constr_func(self.M[:,particle]) or not self.validate_obj_function(np.vstack(self.M[:,self.current_particle]))
         if update > 0:
-            while (not self.constr_func(self.M[:,particle])) and (not self.validate_obj_function(self.M[:,particle])): 
+            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[:,particle])==False) or (self.validate_obj_function(self.M[:,particle])==False): 
                 variation = self.ubound-self.lbound
                 self.M[:,particle] = \
                     np.squeeze(self.rng.random() * 
