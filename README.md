@@ -15,7 +15,7 @@ Now featuring AntennaCAT hooks for GUI integration and user input handling.
     * [Objective Function Handling](#objective-function-handling)
       * [Internal Objective Function Example](internal-objective-function-example)
 * [Examples](#example-implementations)
-    * [Basic PSO Example](#basic-pso-example)
+    * [Basic Swarm Example](#basic-swarm-example)
     * [Detailed Messages](#detailed-messages)
     * [Realtime Graph](#realtime-graph)
 * [References](#references)
