@@ -12,6 +12,8 @@ Now featuring AntennaCAT hooks for GUI integration and user input handling.
 * [Quantum Inspired Optimization](#quantum-inspired-optimization)
 * [Quantum Cat Swarm Optimization](#quantum-cat-swarm-optimization)
     * [Quantum Seeking Mode](#quantum-seeking-mode)
+       * [Mean Best Position](#mean-best-position)
+       * [Position Update](#position-update)
 * [Requirements](#requirements)
 * [Implementation](#implementation)
     * [Constraint Handling](#constraint-handling)
@@ -51,7 +53,7 @@ These two concepts are applied, generally speaking, as follows:
 
 1) Superposition
 
-**Quantum Concept**: In quantum mechanics, a particle canexist in a superposition of multiple states simultaneously. For example, a quantum bit (qubit) can be in a state ∣0⟩∣0⟩, ∣1⟩∣1⟩, or any linear combination ∣ψ⟩=α∣0⟩+β∣1⟩∣ψ⟩=α∣0⟩+β∣1⟩, where αα and ββ are complex numbers.
+**Quantum Concept**: In quantum mechanics, a particle canexist in a superposition of multiple states simultaneously. For example, a quantum bit (qubit) can be in a state ∣0⟩∣0⟩, ∣1⟩∣1⟩, or any linear combination ∣ψ⟩=α∣0⟩+β∣1⟩∣ψ⟩=α∣0⟩+β∣1⟩, where α and β are complex numbers.
 
 **Classical Adaptation**: In quantum-inspired algorithms, superposition can be interpreted as a probability distribution over multiple states. Instead of particles having a single position, they are represented by a probability distribution, reflecting the potential to be in various positions simultaneously.
 
@@ -80,34 +82,37 @@ Unlike traditional PSO, quantum-inspired swarm optimization algorithms don't use
   * Introducing a probabilistic factor, $u$, to generate new positions.
   * Evaluates the fitness of these new positions and selects the best one.
 
-1) **Mean Best Position (mb)**: This is a weighted average of the personal best position ($p$) and the global best position ($g$). It is calculated as:
+#### Mean Best Position
+ 
+Mean Best Position ($mb$) is a weighted average of the personal best position ($p$) and the global best position ($g$). It is calculated as:
 
-        ```math
-        mb=\beta \cdot p+(1−\beta) \cdot g
+```math
+mb=\beta \cdot p+(1−\beta) \cdot g
 
-        ```
+```
 
-        Where:
+Where:
 
-        * $\beta$ is a parameter controlling the influence between the personal and global best positions.
+* $\beta$ is a parameter controlling the influence between the personal and global best positions.
 
+#### Position Update
 
-2) **Position Update**: In QPSO, instead of updating the velocity and then the position, we directly update the position using quantum mechanics-inspired rules. The update rule is:
+ In QPSO, instead of updating the velocity and then the position, we directly update the position using quantum mechanics-inspired rules. The update rule is:
 
 ```math
 x_i(t+1) = mb \pm \beta \cdot \lvert p - g \rvert \cdot \log(1/u)
 ```
 
-        Where:
+Where:
 
-        * $mb$ is the mean best position
-        * $\beta$ is a user-defined parameter influencing convergence behavior.
-        * $p$ is the personal best position of the particle.
-        * $g$ is the global best position of the swarm.
-        * $u$ is a uniformly distributed random number in the range (0, 1).
-        * The logarithmic term $log(1/u)$ comes from the distribution properties of quantum systems.
-        * $\beta \cdot \lvert p−g \rvert $ scales the exploration step based on the distance between the personal and global best positions.
-        * $log(1/u)$ introduces a random factor with a bias towards smaller values (since $u$ is between 0 and 1, $log(1/u)$ is negative, making $−log⁡(1/u)$ positive).
+* $mb$ is the mean best position
+* $\beta$ is a user-defined parameter influencing convergence behavior.
+* $p$ is the personal best position of the particle.
+* $g$ is the global best position of the swarm.
+* $u$ is a uniformly distributed random number in the range (0, 1).
+* The logarithmic term $log(1/u)$ comes from the distribution properties of quantum systems.
+* $\beta \cdot \lvert p−g \rvert $ scales the exploration step based on the distance between the personal and global best positions.
+* $log(1/u)$ introduces a random factor with a bias towards smaller values (since $u$ is between 0 and 1, $log(1/u)$ is negative, making $−log⁡(1/u)$ positive).
 
 
 The QPSO update rule is based on the quantum mechanics principle where particles have a probability distribution of being in different positions. The position update rule can be seen as a way to explore the search space more effectively through 2 key factors:
@@ -120,8 +125,7 @@ The QPSO update rule is based on the quantum mechanics principle where particles
 
 ### Quantum Tracing Mode
 
-    Update the cat’s position towards the global best position using a quantum-inspired probabilistic update rule.
-
+    Update the cat’s position towards the global best position using the quantum-inspired probabilistic update rule, in this case the random vector $u$.
 
 
 
