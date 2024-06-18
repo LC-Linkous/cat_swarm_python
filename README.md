@@ -1,8 +1,6 @@
 # cat_swarm_quantum
 
-# IN PROGRESS !!
-
-A 'quantum' cat swarm optimizer written in Python using quantum inspired methods. Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
+A 'quantum' cat swarm optimizer written in Python using quantum inspired methods (non-qiskit). Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
 
 
 Now featuring AntennaCAT hooks for GUI integration and user input handling.
@@ -78,7 +76,7 @@ Unlike traditional PSO, quantum-inspired swarm optimization algorithms don't use
 ### Quantum Seeking Mode
 
 *  Generates several copies of the cat's position using a quantum-inspired update rule, which involves:
-  * Calculating a mean best position, $mb$, as a combination of the global best position, $p$, and the current cat's position, $q$.
+  * Calculating a mean best position, $mb$, as a combination of the global best position, $g$, and the current cat's position, $p$.
   * Introducing a probabilistic factor, $u$, to generate new positions.
   * Evaluates the fitness of these new positions and selects the best one.
 
@@ -125,7 +123,7 @@ The QPSO update rule is based on the quantum mechanics principle where particles
 
 ### Quantum Tracing Mode
 
-    Update the cat’s position towards the global best position using the quantum-inspired probabilistic update rule, in this case the random vector $u$.
+Update the cat’s position towards the global best position using the quantum-inspired probabilistic update rule, in this case the random vector $u$.
 
 
 
@@ -205,11 +203,10 @@ main_test_details.py provides an example using a parent class, and the self.supp
 ### Realtime Graph
 
 <p align="center">
-        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/main/media/cat_swarm.gif" alt="Example Cat Swarm Optimization" height="200">
+        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/cat_swarm_quantum/media/qcat_swarm.gif" alt="Example Quantum Cat Swarm Optimization" height="200">
 </p>
 
-main_test_graph.py provides an example using a parent class, and the self.suppress_output and detailedWarnings flags to control error messages that are passed back to the parent class to be printed with a timestamp. Additionally, a realtime graph shows particle locations at every step. In this example, the cat swarm is not well-tuned to the problem and is not fast to converge, 
-but the error from the target is relatively small.
+main_test_graph.py provides an example using a parent class, and the self.suppress_output and detailedWarnings flags to control error messages that are passed back to the parent class to be printed with a timestamp. Additionally, a realtime graph shows particle locations at every step. 
 
 NOTE: if you close the graph as the code is running, the code will continue to run, but the graph will not re-open.
 
