@@ -29,9 +29,10 @@ class swarm:
     # int boundary 1 = random,      2 = reflecting
     #              3 = absorbing,   4 = invisible
     def __init__(self, NO_OF_PARTICLES, lbound, ubound,
-                 weights, vlimit, output_size, targets,
+                 weights, output_size, targets,
                  E_TOL, maxit, boundary, obj_func, constr_func,
                  MR=0.12, SMP=5, SRD=0.2, CDC=2, SPC=False,
+                 beta=0.5, input_size=3,
                  parent=None, detailedWarnings=False):  
 
         
@@ -83,11 +84,6 @@ class swarm:
                                                                      variation) + 
                                                                      lbound)    
 
-            # velocity
-            self.V = np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                     widthl]),1)), 
-                                                                     vlimit))
-            
 
 
             for i in range(2,int(NO_OF_PARTICLES)+1):
@@ -100,14 +96,6 @@ class swarm:
                                                                                variation) 
                                                                                + lbound)])
 
-                self.V = \
-                    np.hstack([self.V, 
-                               np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                               widthl]),
-                                                                               1)), 
-                                                                               vlimit))])
-                
-            
             #randomly classify cats into seeking or tracing. 
                 # 0 = tracing, 1 = seeking
             # MR controls how many cats are tracking (usually a small amount),
@@ -141,14 +129,15 @@ class swarm:
 
             '''
             self.M                      : An array of current particle (cat) locations.
-            self.V                      : An array of current particle (cat) velocities.
             self.cat_mode               : An array of if cats are in tracing (0) or seeking (1) mode
             self.MR                     : Mixture ratio (MR). Small value for tracing population
             self.SMP                    : seeking memory pool. Num copies of cats made 
             self.SRD                    : seeking range of the selected dimension 
             self.CDC                    : counts of dimension to change. mutation.
             self.SPC                    : self-position consideration. boolean.
-            self.output_size            : An integer value for the output size of obj func
+            self.beta                   : Float constant controlling influence between the personal and global best positions
+            self.output_size            : An integer value for the output size of obj func (y-vals)
+            self.input_size             : An integer value for the input size of the obj func (x-vals)
             self.Active                 : An array indicating the activity status of each particle. (e.g., in bounds)
             self.Gb                     : Global best position, initialized with a large value.
             self.F_Gb                   : Fitness value corresponding to the global best position.
@@ -169,9 +158,10 @@ class swarm:
             self.Fvals                  : List to store fitness values.
             self.Mlast                  : Last location of particle
             self.InitDeviation          : Initial deviation of particles.
-            self.delta_t                : static time modulation. retained for comparison to original repo. and swarm export
             '''
+            self.beta = beta
             self.output_size = output_size
+            self.input_size = input_size
             self.Active = np.ones((NO_OF_PARTICLES))                        
             self.Gb = sys.maxsize*np.ones((np.max([heightl, widthl]),1))   
             self.F_Gb = sys.maxsize*np.ones((output_size,1))                
@@ -218,7 +208,8 @@ class swarm:
         # CDC : counts of dimension to change. mutation.
         # SPC : self-position consideration. boolean.
         
-        # Step 1: generate candidate positions
+
+        # Step 1: generate candidate positions (copies)
         current_position = self.M[:, particle]
                 
         if self.SPC == True: # current cat included in pool (added later)
@@ -228,12 +219,17 @@ class swarm:
 
         # Step 2: modify each candidate position
             # new_position = (1+(random sign)*SRD)*current_position
-        num_dimensions = len(current_position)
+        # duplicate locals to stick with eqs. in README
+        p = self.Pb[:, particle]             # personal best
+        g = np.hstack(self.Gb)               # global best
+
+        # Mean Best Position (for the cat)
+        mb = self.beta* p + (1 - self.beta) * g
+
         for i in range(len(candidate_positions)):
-            dims_to_change = np.random.choice(num_dimensions, self.CDC, replace=False)
-            for j in dims_to_change:
-                modification = (np.random.choice([-1, 1])) * self.SRD
-                candidate_positions[i][j] += modification
+            # Position Update (Update Rule), applied on copies
+            u = np.random.uniform(size=(1,self.input_size))
+            candidate_positions[i] = mb + self.beta * np.abs(p - g) * np.log(1 / u)
 
         if self.SPC== True: # add current cat into the pool
             candidate_positions = np.vstack((candidate_positions, current_position))
@@ -263,7 +259,6 @@ class swarm:
         candidate_probability = np.ones(len(fitness_values))/len(fitness_values)
         if all_norms_same == False: #calculate probability
             idx = 0
-            # prob = {abs(fitness_cat-fitness_max)}/{fitness_max - fitness_min}
             for c in candidate_positions:
                 FS_cat = l2_norms[idx]
                 FSmin = np.min(l2_norms)
@@ -273,7 +268,7 @@ class swarm:
                 idx = idx + 1
         
         # normalize the probability so it adds to 1
-        candidate_probability = candidate_probability/ np.sum(candidate_probability)
+        candidate_probability = candidate_probability/np.sum(candidate_probability)
         # Randomly select new position
         candidate_idx = np.arange(0, len(candidate_probability), 1)
 
@@ -285,20 +280,13 @@ class swarm:
 
     def tracing_mode(self, particle):
         # this is the "movement" function for the cat swarm
-
-        # new velocity
-        # new_V = old_V + random(0 to 1)*weights*(position of cat with best fitness - position of this cat )
-        old_V = self.V[:,particle]
-        new_V = np.add(old_V, np.random.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[:, particle]))
-
-        self.V[:,particle] = 1.0*new_V # multiply so not just a mem. address copy
-
+        p = self.Pb[:, particle]             # personal best
+        g = np.hstack(self.Gb)               # global best
+        u = np.random.uniform(size=self.input_size)
         # new location
-        # new_M = old_M + new_V
-        self.M[:,particle] = self.M[:,particle]+new_V
+        self.M[:,particle] = p  + np.hstack(self.weights) * u * (g - p)
 
-    
-  
+      
     def check_bounds(self, particle):
         update = 0
         for i in range(0,(np.shape(self.M)[0])):
@@ -337,8 +325,6 @@ class swarm:
         constr = self.constr_func(self.M[:,particle])
         if (update > 0) and constr:
             self.M[:,particle] = 1*self.Mlast
-            NewV = np.multiply(-1,self.V[update-1,particle])
-            self.V[update-1,particle] = NewV
         if not constr:
             self.random_bound(particle)
 
@@ -347,7 +333,6 @@ class swarm:
         constr = self.constr_func(self.M[:,particle])
         if (update > 0) and constr:
             self.M[:,particle] = 1*self.Mlast
-            self.V[update-1,particle] = 0
         if not constr:
             self.random_bound(particle)
 
@@ -399,8 +384,6 @@ class swarm:
                 "-----------------------------\n" + \
                 "Current Particle:\n" + \
                 str(self.current_particle) +"\n" + \
-                "Current Particle Velocity\n" + \
-                str(self.V[:,self.current_particle]) +"\n" + \
                 "Current Particle Location\n" + \
                 str(self.M[:,self.current_particle]) +"\n" + \
                 "Current Seeking/Tracing Status\n" + \
@@ -437,7 +420,6 @@ class swarm:
         swarm_export = {'lbound': self.lbound,
                         'ubound': self.ubound,
                         'M': self.M,
-                        'V': self.V,
                         'Gb': self.Gb,
                         'F_Gb': self.F_Gb,
                         'Pb': self.Pb,
@@ -447,7 +429,6 @@ class swarm:
                         'maxit': self.maxit,
                         'E_TOL': self.E_TOL,
                         'iter': self.iter,
-                        'delta_t': self.delta_t,
                         'current_particle': self.current_particle,
                         'number_of_particles': self.number_of_particles,
                         'allow_update': self.allow_update,
@@ -463,7 +444,6 @@ class swarm:
         self.lbound = swarm_export['lbound'] 
         self.ubound = swarm_export['ubound'] 
         self.M = swarm_export['M'] 
-        self.V = swarm_export['V'] 
         self.Gb = swarm_export['Gb'] 
         self.F_Gb = swarm_export['F_Gb'] 
         self.Pb = swarm_export['Pb'] 
