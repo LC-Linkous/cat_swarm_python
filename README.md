@@ -4,7 +4,10 @@ A 'quantum' cat swarm optimizer written in Python using quantum inspired methods
 
 
 Now featuring AntennaCAT hooks for GUI integration and user input handling.
- 
+
+This branch of the repository is part of a series of replication studies. It is not intended to be the 'best' implementation, or the most recent update. This method has been chosen to replicate a specific snapshot of literature.
+
+
 ## Table of Contents
 * [Cat Swarm Optimization](#cat-swarm-optimization)
 * [Quantum Inspired Optimization](#quantum-inspired-optimization)
@@ -219,6 +222,9 @@ NOTE: if you close the graph as the code is running, the code will continue to r
 
 [3] Jun Sun, Wenbo Xu and Bin Feng, "A global search strategy of quantum-behaved particle swarm optimization," IEEE Conference on Cybernetics and Intelligent Systems, 2004., Singapore, 2004, pp. 111-116 vol.1, doi: 10.1109/ICCIS.2004.1460396.
 
+[4] IEEE link
+
+[5] IEEE link
 
 ## Publications and Integration
 This software works as a stand-alone implementation, and as one of the optimizers integrated into AntennaCAT.
