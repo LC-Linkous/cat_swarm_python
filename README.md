@@ -1,12 +1,17 @@
-# cat_swarm_python
+# cat_swarm_quantum
 
-Basic cat swarm optimizer written in Python.  Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
+# IN PROGRESS !!
+
+A 'quantum' cat swarm optimizer written in Python using quantum inspired methods. Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
 
 
 Now featuring AntennaCAT hooks for GUI integration and user input handling.
  
 ## Table of Contents
 * [Cat Swarm Optimization](#cat-swarm-optimization)
+* [Quantum Inspired Optimization](#quantum-inspired-optimization)
+* [Quantum Cat Swarm Optimization](#quantum-cat-swarm-optimization)
+    * [Quantum Seeking Mode](#quantum-seeking-mode)
 * [Requirements](#requirements)
 * [Implementation](#implementation)
     * [Constraint Handling](#constraint-handling)
@@ -35,6 +40,89 @@ The seeking mode is responsible for exploring the search space to discover new a
 2) Tracing Mode:
 
 The tracing mode is responsible for exploiting the search space by following the best solutions found so far. In this mode, cats simulate a behavior where they move towards a promising position, akin to a cat chasing prey. This helps refine solutions and converge towards the global optimum.
+
+
+## Quantum Inspired Optimization
+
+Quantum(-inspired) Particle Swarm Optimization (QPSO) was introduced in 2004 [2] [3]. Paraphrased from [2], in PSO the location and velocity vectors are used to determine the trajectory of the particle, which because in Newtonian mechanics a particle moves along a determined trajectory. However, in quantum mechanics, the location and velocity vectors cannot be determined/known simultaneously due to uncertainty principle (Werner Heisenberg, 1927). The takeaway being, quantum-inspired algorithms take concepts from quantum mechanics, such as superposition and entanglement, and apply them in classical computation to solve optimization problems more effectively (depending on the problem type). 
+
+These two concepts are applied, generally speaking, as follows:
+
+
+1) Superposition
+
+**Quantum Concept**: In quantum mechanics, a particle canexist in a superposition of multiple states simultaneously. For example, a quantum bit (qubit) can be in a state ∣0⟩∣0⟩, ∣1⟩∣1⟩, or any linear combination ∣ψ⟩=α∣0⟩+β∣1⟩∣ψ⟩=α∣0⟩+β∣1⟩, where αα and ββ are complex numbers.
+
+**Classical Adaptation**: In quantum-inspired algorithms, superposition can be interpreted as a probability distribution over multiple states. Instead of particles having a single position, they are represented by a probability distribution, reflecting the potential to be in various positions simultaneously.
+
+**Example in QPSO**: In the Quantum-inspired Particle Swarm Optimization (QPSO), a particle’s position is often updated using a probability distribution derived from both personal best and global best positions, rather than a deterministic position update. This allows particles to explore the search space more effectively.
+
+
+2) Entanglement
+
+**Quantum Concept**: Entanglement is a phenomenon where particles become interconnected such that the state of one particle directly affects the state of another, no matter the distance between them. This creates a strong correlation between the particles.
+
+**Classical Adaptation**: In quantum-inspired algorithms, entanglement can be represented as a dependency or correlation between particles. When one particle updates its position, it influences the position updates of other particles, promoting cooperative behavior among the particles in the swarm.
+
+**Example in QPSO**: In QPSO, the positions of particles might be updated using a combination of their personal best position and the global best position, creating a form of "entanglement" where particles are influenced by the best solutions found by the swarm, thus maintaining a level of coordination and cooperation.
+
+
+
+## Quantum Cat Swarm Optimization
+
+Unlike traditional PSO, quantum-inspired swarm optimization algorithms don't use paired position and velocity vectors. Instead, they generally update particle positions directly based on a probability distribution based on the mean best position and a logarithmic factor, which has roots in the quantum mechanics principles mentioned previously. The QPSO update rule leverages quantum-inspired probabilistic movements to balance exploration and exploitation. By combining the best aspects of personal and global experiences and adding a stochastic component, QPSO can effectively search complex optimization landscapes. 
+
+
+### Quantum Seeking Mode
+
+*  Generates several copies of the cat's position using a quantum-inspired update rule, which involves:
+  * Calculating a mean best position, $mb$, as a combination of the global best position, $p$, and the current cat's position, $q$.
+  * Introducing a probabilistic factor, $u$, to generate new positions.
+  * Evaluates the fitness of these new positions and selects the best one.
+
+1) **Mean Best Position (mb)**: This is a weighted average of the personal best position ($p$) and the global best position ($g$). It is calculated as:
+
+        ```math
+        mb=\beta \cdot p+(1−\beta) \cdot g
+
+        ```
+
+        Where:
+
+        * $\beta$ is a parameter controlling the influence between the personal and global best positions.
+
+
+2) **Position Update**: In QPSO, instead of updating the velocity and then the position, we directly update the position using quantum mechanics-inspired rules. The update rule is:
+
+```math
+x_i(t+1) = mb \pm \beta \cdot \lvert p - g \rvert \cdot \log(1/u)
+```
+
+        Where:
+
+        * $mb$ is the mean best position
+        * $\beta$ is a user-defined parameter influencing convergence behavior.
+        * $p$ is the personal best position of the particle.
+        * $g$ is the global best position of the swarm.
+        * $u$ is a uniformly distributed random number in the range (0, 1).
+        * The logarithmic term $log(1/u)$ comes from the distribution properties of quantum systems.
+        * $\beta \cdot \lvert p−g \rvert $ scales the exploration step based on the distance between the personal and global best positions.
+        * $log(1/u)$ introduces a random factor with a bias towards smaller values (since $u$ is between 0 and 1, $log(1/u)$ is negative, making $−log⁡(1/u)$ positive).
+
+
+The QPSO update rule is based on the quantum mechanics principle where particles have a probability distribution of being in different positions. The position update rule can be seen as a way to explore the search space more effectively through 2 key factors:
+
+**Diverse Exploration**: The term $log⁡(1/u_2)$ helps in creating a wide range of possible moves, allowing the particles to explore the search space extensively. The logarithmic function is chosen because it provides a heavy-tailed distribution, meaning particles can make both small and large jumps, avoiding local minima and encouraging global exploration.
+
+**Balanced Exploitation**: The combination of $mb$, $p$, and $g$ ensures that the particles are guided towards promising regions of the search space, leveraging both individual experience (personal_best) and collective knowledge (global_best).
+
+
+
+### Quantum Tracing Mode
+
+    Update the cat’s position towards the global best position using a quantum-inspired probabilistic update rule.
+
+
 
 
 ## Requirements
@@ -124,6 +212,11 @@ NOTE: if you close the graph as the code is running, the code will continue to r
 ## References
 
 [1] S.-C. Chu, P. Tsai, and J.-S. Pan, “Cat Swarm Optimization,” Lecture Notes in Computer Science, pp. 854–858, 2006, doi: https://doi.org/10.1007/978-3-540-36668-3_94.
+
+
+[2] Jun Sun, Bin Feng and Wenbo Xu, "Particle swarm optimization with particles having quantum behavior," Proceedings of the 2004 Congress on Evolutionary Computation (IEEE Cat. No.04TH8753), Portland, OR, USA, 2004, pp. 325-331 Vol.1, doi: 10.1109/CEC.2004.1330875.
+
+[3] Jun Sun, Wenbo Xu and Bin Feng, "A global search strategy of quantum-behaved particle swarm optimization," IEEE Conference on Cybernetics and Intelligent Systems, 2004., Singapore, 2004, pp. 111-116 vol.1, doi: 10.1109/ICCIS.2004.1460396.
 
 
 ## Publications and Integration
