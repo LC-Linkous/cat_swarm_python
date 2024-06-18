@@ -29,12 +29,12 @@ class TestDetails():
         LB = func_configs.LB              # Lower boundaries, [[0.21, 0, 0.1]]
         UB = func_configs.UB              # Upper boundaries, [[1, 1, 0.5]]   
         OUT_VARS = func_configs.OUT_VARS  # Number of output variables (y-values)
+        IN_VARS = func_configs.IN_VARS    # Number of input variables (x-values)
         TARGETS = func_configs.TARGETS    # Target values for output
 
         # swarm variables
         NO_OF_PARTICLES = 25         # Number of particles in swarm
         WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
-        VLIM = 1.5                   # Initial velocity limit
         E_TOL = 10 ** -6             # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
@@ -46,6 +46,10 @@ class TestDetails():
         SRD = .45                   # Seeking range of the selected dimension. 
         CDC = 2                     # Counts of dimension to change. mutation.
         SPC = True                  # self-position consideration. boolean.
+
+        # quantum swarm variables
+        BETA = 0.5                  #Float constant controlling influence 
+                                        #between the personal and global best positions
 
         # swarm setup
         parent = self                 # Optional parent class for swarm 
@@ -75,9 +79,10 @@ class TestDetails():
 
 
         self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
-                        WEIGHTS, VLIM, OUT_VARS, TARGETS,
+                        WEIGHTS, OUT_VARS, TARGETS,
                         E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
                         MR=MR, SMP=SMP, SRD=SRD, CDC=CDC, SPC=SPC,
+                        beta=BETA, input_size=IN_VARS, 
                         parent=parent, detailedWarnings=detailedWarnings)
 
 
