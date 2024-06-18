@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 
 ##-------------------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/main_function_graph.py'
+#   cat_swarm_quantum
+#   './cat_swarm_quantum/src/main_function_graph.py'
 #   generates graphs for function based on constraints and configurations
 #   in-package demo for graphing the pareto front
 #

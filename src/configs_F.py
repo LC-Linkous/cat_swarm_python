@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/configs_F.py'
+#   cat_swarm_quantum
+#   './cat_swarm_quantum/src/configs_F.py'
 #   Constant values for objective function. Formatted for
 #       automating objective function integration
 #
@@ -17,8 +17,8 @@ from constr_F import constr_F
 
 OBJECTIVE_FUNC = func_F
 CONSTR_FUNC = constr_F
-OBJECTIVE_FUNC_NAME = "cat_swarm_python.func_F"
-CONSTR_FUNC_NAME = "cat_swarm_python.constr_F"
+OBJECTIVE_FUNC_NAME = "cat_swarm_quantum.func_F"
+CONSTR_FUNC_NAME = "cat_swarm_quantum.constr_F"
 
 # problem dependent variables
 LB = [[0.21, 0, 0.1]]       # Lower boundaries for input

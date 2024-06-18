@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/main_test_graph.py'
+#   cat_swarm_quantum
+#   './cat_swarm_quantum/src/main_test_graph.py'
 #   Test function/example for using the 'swarm' class in cat_swarm.py.
 #       This has been modified from the original pso_python to include message 
 #       passing back to the parent class or testbench, rather than printing

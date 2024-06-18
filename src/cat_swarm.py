@@ -1,9 +1,9 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/cat_swarm.py'
-#   A basic Cat swarm optimization class. This class follows the same 
+#   cat_swarm_quantum
+#   './cat_swarm_quantum/src/cat_swarm.py'
+#   A quantum-inspired Cat swarm optimization class. This class follows the same 
 #       format as pso_python and pso_basic to make them interchangeable
 #       in function calls. 
 #       
