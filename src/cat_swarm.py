@@ -1,15 +1,15 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/cat_swarm.py'
-#   A basic Cat swarm optimization class. This class follows the same 
+#   sand_cat_python
+#   './sand_cat_python/src/cat_swarm.py'
+#   A basic sand cat swarm optimization class. This class follows the same 
 #       format as pso_python and pso_basic to make them interchangeable
 #       in function calls. 
 #       
 #
-#   Author(s): Lauren Linkous
-#   Last update: June 14, 2024
+#   Author(s): Lauren Linkous, Jonathan Lundquist
+#   Last update: June 19, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -29,9 +29,8 @@ class swarm:
     # int boundary 1 = random,      2 = reflecting
     #              3 = absorbing,   4 = invisible
     def __init__(self, NO_OF_PARTICLES, lbound, ubound,
-                 weights, vlimit, output_size, targets,
+                 weights, output_size, targets,
                  E_TOL, maxit, boundary, obj_func, constr_func,
-                 MR=0.12, SMP=5, SRD=0.2, CDC=2, SPC=False,
                  parent=None, detailedWarnings=False):  
 
         
@@ -83,12 +82,6 @@ class swarm:
                                                                      variation) + 
                                                                      lbound)    
 
-            # velocity
-            self.V = np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                     widthl]),1)), 
-                                                                     vlimit))
-            
-
 
             for i in range(2,int(NO_OF_PARTICLES)+1):
                 
@@ -100,54 +93,11 @@ class swarm:
                                                                                variation) 
                                                                                + lbound)])
 
-                self.V = \
-                    np.hstack([self.V, 
-                               np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                               widthl]),
-                                                                               1)), 
-                                                                               vlimit))])
-                
-            
-            #randomly classify cats into seeking or tracing. 
-                # 0 = tracing, 1 = seeking
-            # MR controls how many cats are tracking (usually a small amount),
-                # however it is random WHICH cats are tracking
-
-            # cat vars
-            self.MR = MR  #mixture ratio (MR), % of population in tracing state
-            self.SMP = SMP
-            self.SRD = SRD
-            self.CDC = CDC
-            self.SPC = SPC
- 
-            
-            cat_mode = np.array([[1]]) # if there's 1 cat, just make it seeking to start
-            
-            if NO_OF_PARTICLES >1: #more cats
-                tracingRatio = int(self.MR*NO_OF_PARTICLES) #how many tracing in population
-                # arrays of tracing (0) or seeking (1)
-                array_of_zeros = np.zeros((tracingRatio,1))
-                array_of_ones = np.ones((NO_OF_PARTICLES-tracingRatio,1))   
-
-                # combine arrays for whole population
-                cat_mode = np.concatenate((cat_mode, array_of_zeros, array_of_ones))
-
-                # shuffle
-                np.random.shuffle(cat_mode)
-
-            self.cat_mode = cat_mode
-
-
 
             '''
             self.M                      : An array of current particle (cat) locations.
-            self.V                      : An array of current particle (cat) velocities.
-            self.cat_mode               : An array of if cats are in tracing (0) or seeking (1) mode
-            self.MR                     : Mixture ratio (MR). Small value for tracing population
-            self.SMP                    : seeking memory pool. Num copies of cats made 
-            self.SRD                    : seeking range of the selected dimension 
-            self.CDC                    : counts of dimension to change. mutation.
-            self.SPC                    : self-position consideration. boolean.
+            self.S                      : Maximum sensitivity range. Constant.
+            self.rg                     : General sensitivity range that is decreased linearly from 2 to 0
             self.output_size            : An integer value for the output size of obj func
             self.Active                 : An array indicating the activity status of each particle. (e.g., in bounds)
             self.Gb                     : Global best position, initialized with a large value.
@@ -171,6 +121,8 @@ class swarm:
             self.InitDeviation          : Initial deviation of particles.
             self.delta_t                : static time modulation. retained for comparison to original repo. and swarm export
             '''
+            self.S = 2
+            self.rg = None # set at the start of iterating through a population
             self.output_size = output_size
             self.Active = np.ones((NO_OF_PARTICLES))                        
             self.Gb = sys.maxsize*np.ones((np.max([heightl, widthl]),1))   
@@ -211,93 +163,54 @@ class swarm:
                     self.allow_update = 0
             return noError# return is for error reporting purposes only
     
-    def seeking_mode(self, particle):
-        # this is the "resting" function for the cat swarm
-        # SMP : seeking memory pool. Num copies of cats made 
-        # SRD : seeking range of the selected dimension 
-        # CDC : counts of dimension to change. mutation.
-        # SPC : self-position consideration. boolean.
+    def exploitation_mode(self, particle):
+        # NOTE: in MATLAB rand() returns a random scalar drawn from the uniform distribution in the interval (0,1).
+        # MATLAB implementation: r = rand() * rg
+        # Python equivalent:  np.random.uniform()  . However, uniform() is a half-open interval such that [0, 1)
         
-        # Step 1: generate candidate positions
-        current_position = self.M[:, particle]
-                
-        if self.SPC == True: # current cat included in pool (added later)
-            candidate_positions = np.tile(current_position, (self.SMP-1, 1))
-        else: # current cat not included. make SMP copies
-            candidate_positions = np.tile(current_position, (self.SMP, 1))
-
-        # Step 2: modify each candidate position
-            # new_position = (1+(random sign)*SRD)*current_position
-        num_dimensions = len(current_position)
-        for i in range(len(candidate_positions)):
-            dims_to_change = np.random.choice(num_dimensions, self.CDC, replace=False)
-            for j in dims_to_change:
-                modification = (np.random.choice([-1, 1])) * self.SRD
-                candidate_positions[i][j] += modification
-
-        if self.SPC== True: # add current cat into the pool
-            candidate_positions = np.vstack((candidate_positions, current_position))
-
-        # Step 3: calculate fitness values of all candidates
-            # with additional error checking
-        fitness_values =  np.ones((self.SMP,self.output_size))*sys.maxsize
-        idx = 0
-        for i in candidate_positions:
-                # validate and append
-                newFVals, noError = self.obj_func(i, self.output_size)
-                if noError == True:
-                    fitness_values[idx] = 1.0*np.hstack(newFVals)
-                else:
-                   pass # leave as sys.maxsize
-                idx = idx + 1 
-        # Step 4: Select the best position based on fitness
-            #If all Fitness_values are not exactly equal, calculate the selecting probability of each
-            #candidate point by equation (1), otherwise set all the selecting probability
-            #of each candidate point be 1. (2007, computational intelligence based on the behaviour of cats)
-
-        # Compute the L2 norm of each row
-        l2_norms = np.linalg.norm(fitness_values, axis=1)
-        # Check if all L2 norms are the same
-        all_norms_same = np.all(l2_norms == l2_norms[0])
-
-        candidate_probability = np.ones(len(fitness_values))/len(fitness_values)
-        if all_norms_same == False: #calculate probability
-            idx = 0
-            # prob = {abs(fitness_cat-fitness_max)}/{fitness_max - fitness_min}
-            for c in candidate_positions:
-                FS_cat = l2_norms[idx]
-                FSmin = np.min(l2_norms)
-                FSmax = np.max(l2_norms)
-                FSb =  FSmax# max bc minimization problem
-                candidate_probability[idx] = abs(FS_cat-FSb)/abs(FSmax-FSmin)
-                idx = idx + 1
+        r = np.random.uniform()*self.rg
         
-        # normalize the probability so it adds to 1
-        candidate_probability = candidate_probability/ np.sum(candidate_probability)
-        # Randomly select new position
-        candidate_idx = np.arange(0, len(candidate_probability), 1)
+        
+        # NOTE:
+        # the MATLAB code provided with the paper uses 2 nested for loops in order
+        # to set each dimension of the agent (cat) seperately. This is similar
+        # to the original cat swarm allowing the user to choose an integer for 
+        # how many dimensions to mutate.
 
-        new_position = np.random.choice(candidate_idx, 1, p=candidate_probability)
+        # start with current agent position so the shape is always retained
+        rand_position = self.M[:, particle]
 
-        self.M[:, particle] = candidate_positions[new_position]
-            
+        # generate an array of random thetas (the routlette wheel selction from 1:360 degs)
+        random_thetas = np.random.randint(low=1, high=360, size=len(rand_position))
+        # generate an array of random numbers 
+        rand_nums = (np.random.uniform(0,1,len(rand_position)))
+
+        rand_position = abs(rand_nums*np.hstack(self.Gb)-self.M[:, particle])
+        self.M[:, particle] = np.hstack(self.Gb)-r*rand_position*np.cos(random_thetas)
 
 
-    def tracing_mode(self, particle):
-        # this is the "movement" function for the cat swarm
+    def exploration_mode(self, particle):
+        # NOTE: in MATLAB rand() returns a random scalar drawn from the uniform distribution in the interval (0,1).
+        # MATLAB implementation: r = rand() * rg
+        # Python equivalent:  np.random.uniform()  . However, uniform() is a half-open interval such that [0, 1)
+        
+        r = np.random.uniform()*self.rg
 
-        # new velocity
-        # new_V = old_V + random(0 to 1)*weights*(position of cat with best fitness - position of this cat )
-        old_V = self.V[:,particle]
-        new_V = np.add(old_V, np.random.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[:, particle]))
+        # adaption of:
+        # cp=floor(SearchAgents_no*rand()+1);
+        # CandidatePosition =Positions(cp,:);
+        # Positions(i,j)=r*(CandidatePosition(j)-rand*Positions(i,j));
 
-        self.V[:,particle] = 1.0*new_V # multiply so not just a mem. address copy
-
-        # new location
-        # new_M = old_M + new_V
-        self.M[:,particle] = self.M[:,particle]+new_V
-
-    
+        # choose an idx based off random agent from the cat herd
+        # idx is from [0, number of particles)
+        agent_idx = np.random.randint(low=0, high=self.number_of_particles) 
+        # get the location of the agent from the idx
+        candidate_position = self.M[:, agent_idx]
+        # generate the random numbers to mutate n-dims of the position
+        rand_nums = (np.random.uniform(0,1,len(candidate_position)))
+        # update the location with a mix of the candidate position and the current agent loc
+        self.M[:,particle] = r*(candidate_position-rand_nums*self.M[:,particle] )
+        
   
     def check_bounds(self, particle):
         update = 0
@@ -337,8 +250,6 @@ class swarm:
         constr = self.constr_func(self.M[:,particle])
         if (update > 0) and constr:
             self.M[:,particle] = 1*self.Mlast
-            NewV = np.multiply(-1,self.V[update-1,particle])
-            self.V[update-1,particle] = NewV
         if not constr:
             self.random_bound(particle)
 
@@ -347,7 +258,6 @@ class swarm:
         constr = self.constr_func(self.M[:,particle])
         if (update > 0) and constr:
             self.M[:,particle] = 1*self.Mlast
-            self.V[update-1,particle] = 0
         if not constr:
             self.random_bound(particle)
 
@@ -399,12 +309,8 @@ class swarm:
                 "-----------------------------\n" + \
                 "Current Particle:\n" + \
                 str(self.current_particle) +"\n" + \
-                "Current Particle Velocity\n" + \
-                str(self.V[:,self.current_particle]) +"\n" + \
                 "Current Particle Location\n" + \
                 str(self.M[:,self.current_particle]) +"\n" + \
-                "Current Seeking/Tracing Status\n" + \
-                str(self.cat_mode[self.current_particle]) +"\n" + \
                 "Absolute mean deviation\n" + \
                 str(self.absolute_mean_deviation_of_particles()) +"\n" + \
                 "-----------------------------"
@@ -414,12 +320,36 @@ class swarm:
             if self.Active[self.current_particle]:
                 # save global best
                 self.check_global_local(self.Flist,self.current_particle)
-                # split cats into tracing and seeking
-                    # this combines the update_velocity and update_point in the pso_python repos
-                if self.cat_mode[self.current_particle] == 0: #tracing
-                    self.tracing_mode(self.current_particle)
-                else: # seeking
-                    self.seeking_mode(self.current_particle)
+                # 
+                if self.current_particle == 0:
+                    # Update the sensitivity range
+
+                    # NOTE:
+                    # https://www.mathworks.com/matlabcentral/fileexchange/110185-sand-cat-swarm-optimization
+                    # Following the algrithm provided by the author, these ranges are set for the entire group
+                    # of cats until they've all been iterated over once. This is distinct from some other 
+                    # sand/cat swarm algorithms that were popular at the time of writing this code.
+
+                    #self.S = 2  # Maximum sensitivity range. Constant. Set in _init_()
+                    self.rg = self.S-((self.S)*self.iter/(self.maxit)) # guides R
+                    # NOTE:
+                    # matlab code uses: S-((S)*t/(Max_iter))
+                    # paper equation uses: S - (2*S*t)/(2*max_iterations), equation 1. 
+                    # Difference is simplification.
+
+
+                # r is generated in the mode func()
+                # R, but avoiding CONSTANT notation
+                R_transition = (2 * self.rg) * np.random.uniform() - self.rg # controls transition phases
+
+                # split cats into the algorithm's 2 phases
+                if np.abs(R_transition)<=1: # R value is between -1 and 1 
+                    # Exploitation (attacking prey)
+                    self.exploitation_mode(self.current_particle)
+                else: 
+                    # Exploration phase
+                    self.exploration_mode(self.current_particle)
+
 
                 self.handle_bounds(self.current_particle)
             self.current_particle = self.current_particle + 1
@@ -437,7 +367,6 @@ class swarm:
         swarm_export = {'lbound': self.lbound,
                         'ubound': self.ubound,
                         'M': self.M,
-                        'V': self.V,
                         'Gb': self.Gb,
                         'F_Gb': self.F_Gb,
                         'Pb': self.Pb,
@@ -447,7 +376,6 @@ class swarm:
                         'maxit': self.maxit,
                         'E_TOL': self.E_TOL,
                         'iter': self.iter,
-                        'delta_t': self.delta_t,
                         'current_particle': self.current_particle,
                         'number_of_particles': self.number_of_particles,
                         'allow_update': self.allow_update,
@@ -463,7 +391,6 @@ class swarm:
         self.lbound = swarm_export['lbound'] 
         self.ubound = swarm_export['ubound'] 
         self.M = swarm_export['M'] 
-        self.V = swarm_export['V'] 
         self.Gb = swarm_export['Gb'] 
         self.F_Gb = swarm_export['F_Gb'] 
         self.Pb = swarm_export['Pb'] 
