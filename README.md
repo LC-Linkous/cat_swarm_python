@@ -190,6 +190,7 @@ NOTE: if you close the graph as the code is running, the code will continue to r
 
 [1] S.-C. Chu, P. Tsai, and J.-S. Pan, “Cat Swarm Optimization,” Lecture Notes in Computer Science, pp. 854–858, 2006, doi: https://doi.org/10.1007/978-3-540-36668-3_94.
 
+[2] A. Seyyedabbasi and F. Kiani, “Sand Cat swarm optimization: a nature-inspired algorithm to solve global optimization problems,” Engineering with Computers, Apr. 2022, doi: https://doi.org/10.1007/s00366-022-01604-x.
 
 ## Publications and Integration
 This software works as a stand-alone implementation, and as one of the optimizers integrated into AntennaCAT.
