@@ -1,9 +1,6 @@
 # sand_cat_python
 
-# IN PROGRESS !!!!
-
-Basic sand cat swarm optimizer written in Python.  Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
-
+Basic sand cat swarm optimizer written in Python following [2], and the MATLAB code provided via [mathworks sand cat swarm optimization](https://www.mathworks.com/matlabcentral/fileexchange/110185-sand-cat-swarm-optimization), [3].  The class structure is modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
 
 Now featuring AntennaCAT hooks for GUI integration and user input handling.
  
@@ -45,11 +42,17 @@ The tracing mode is responsible for exploiting the search space by following the
 
 ## Sand Cat Swarm Optimization
 
+In [2] (A. Seyyedabbasi, 2023), Sand Cat Swarm Optimization (SCSO) was proposed as an algorithm able to escape local minima while retaining a balance between the exploitation and exploration. It has fewer parameters and operators than other metaheuristic algorithms, making it easier to implement than some swarm algorithm. 
 
+There are two stages in foraging:
 
+1) Exploitation:
 
+This is the 'attacking prey' stage. In this stage, when an agent's position is updated, both random numbers and random thetas (from 0 to 360) are used to encourage movement out from the current location. The random position and next step are weighted by the global best to keep the exploitation constrained around the well-preforming locations.
 
+2) Exploration:
 
+This is the 'search' stage. In this stage, when evaluating the next location of each agent, a random cat is chosen from the group as a 'candidate', and that cat is used to move the current agent. This encourages the 'herd' behavior of the cats, rather than the motion being purely random.
 
 
 ## Sand Cat Swarm Optimization Vs. Cat Swarm Optimization
@@ -92,7 +95,6 @@ SCSO is inspired by the hunting and survival strategies of sand cats, which are 
 
 Both CSO and SCSO aim to find optimal solutions by mimicking natural behaviors, but they differ in the specific animal behaviors they model and the strategies they use to balance exploration and exploitation of the search space.
 
-
 | Aspect  | Cat Swarm Optimization (CSO) | Sand Cat Swarm Optimization (SCSO)|
 | ------------- | ------------- |------------- |
 | Inspiration  | General cat behavior (seeking and tracing)  | Sand cat's hunting and survival strategies |
@@ -100,7 +102,6 @@ Both CSO and SCSO aim to find optimal solutions by mimicking natural behaviors, 
 | Mechanism  | Uses seeking memory pool, velocity updates, etc. | Adaptive strategies based on sand cat behavior |
 | Exploration/Exploitation  | Alternates between seeking and tracing modes  |Balances using hunting and survival strategies  |
 | Special Features | Parameters (e.g., SMP, SRD, CDC, SPC) for seeking mode  | Adaptive mechanisms inspired by sand cat movement  |
-
 
 ## Requirements
 
@@ -143,7 +144,7 @@ The optimizer minimizes the absolute value of the difference from the target out
 #### Internal Objective Function Example
 The current internal optimization function takes 3 inputs, and has 2 outputs. It was created as a simple 3-variable optimization objective function that would be quick to converge.  
 <p align="center">
-        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/main/media/obj_func_pareto.png" alt="Function Feasible Decision Space and Objective Space with Pareto Front" height="200">
+        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/sand_cat_python/media/obj_func_pareto.png" alt="Function Feasible Decision Space and Objective Space with Pareto Front" height="200">
 </p>
    <p align="center">Function Feasible Decision Space and Objective Space with Pareto Front</p>
 
@@ -166,7 +167,6 @@ This function has three files:
 
 Other multi-objective functions can be applied to this project by following the same format (and several have been collected into a compatible library, and will be released in a separate repo)
 
-
 ## Example Implementations
 
 ### Basic Swarm Example
@@ -178,7 +178,7 @@ main_test_details.py provides an example using a parent class, and the self.supp
 ### Realtime Graph
 
 <p align="center">
-        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/main/media/cat_swarm.gif" alt="Example Cat Swarm Optimization" height="200">
+        <img src="https://github.com/LC-Linkous/cat_swarm_python/blob/sand_cat_python/media/sand_cat_swarm.gif" alt="Example Sand Cat Swarm Optimization" height="200">
 </p>
 
 main_test_graph.py provides an example using a parent class, and the self.suppress_output and detailedWarnings flags to control error messages that are passed back to the parent class to be printed with a timestamp. Additionally, a realtime graph shows particle locations at every step. In this example, the cat swarm is not well-tuned to the problem and is not fast to converge, 
@@ -192,6 +192,10 @@ NOTE: if you close the graph as the code is running, the code will continue to r
 
 [2] A. Seyyedabbasi and F. Kiani, “Sand Cat swarm optimization: a nature-inspired algorithm to solve global optimization problems,” Engineering with Computers, Apr. 2022, doi: https://doi.org/10.1007/s00366-022-01604-x.
 
+[3] “Sand Cat swarm optimization,” www.mathworks.com. https://www.mathworks.com/matlabcentral/fileexchange/110185-sand-cat-swarm-optimization (accessed Jun. 19, 2024).
+
+[4] J. G. March, “Exploration and Exploitation in Organizational Learning,” Organization Science, vol. 2, no. 1, pp. 71–87, Feb. 1991, doi: https://doi.org/10.1287/orsc.2.1.71.  (Bonus read of where the 'exploration and exploitation' phrase often comes from)
+
 ## Publications and Integration
 This software works as a stand-alone implementation, and as one of the optimizers integrated into AntennaCAT.
 
@@ -200,5 +204,6 @@ Publications featuring the code in this repo will be added as they become public
 ## Licensing
 
 The code in this repository has been released under GPL-2.0
+
 
 
