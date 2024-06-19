@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 18, 2024
+#   Last update: June 19, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -34,19 +34,11 @@ class TestDetails():
         # swarm variables
         NO_OF_PARTICLES = 25         # Number of particles in swarm
         WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
-        VLIM = 1.5                   # Initial velocity limit
         E_TOL = 10 ** -6             # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
                                     #              3 = absorbing,   4 = invisible 
         
-        # cat swarm specific
-        MR = .02                    # Mixture Ratio (MR). Small value for tracing population %.
-        SMP = 5                     # Seeking memory pool. Num copies of cats made.
-        SRD = .45                   # Seeking range of the selected dimension. 
-        CDC = 2                     # Counts of dimension to change. mutation.
-        SPC = True                  # self-position consideration. boolean.
-
         # swarm setup
         parent = self                 # Optional parent class for swarm 
                                         # (Used for passing debug messages or
@@ -75,9 +67,8 @@ class TestDetails():
 
 
         self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
-                        WEIGHTS, VLIM, OUT_VARS, TARGETS,
+                        WEIGHTS, OUT_VARS, TARGETS,
                         E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
-                        MR=MR, SMP=SMP, SRD=SRD, CDC=CDC, SPC=SPC,
                         parent=parent, detailedWarnings=detailedWarnings)
 
 
