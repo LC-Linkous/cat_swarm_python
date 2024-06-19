@@ -1,14 +1,14 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/constr_F.py'
+#   sand_cat_python
+#   './sand_cat_python/src/constr_F.py'
 #   Function for objective function constraints.
 #   Has 2 checks: 1 for the function limitations, 1 for float size
 #   Returns True if x array passes constraints check, False otherwise   
 #
 #   Author(s): Jonathan Lundquist, Lauren Linkous
-#   Last update: June 4, 2024
+#   Last update: June 18, 2024
 ##--------------------------------------------------------------------\
 
 

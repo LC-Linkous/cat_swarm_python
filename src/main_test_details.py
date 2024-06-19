@@ -1,8 +1,8 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/main_test_details.py'
+#   sand_cat_python
+#   './sand_cat_python/src/main_test_details.py'
 #   Test function/example for using the 'swarm' class in cat_swarm.py.
 #       This has been modified from the original to include message 
 #       passing back to the parent class or testbench, rather than printing
@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 14, 2024
+#   Last update: June 18, 2024
 ##--------------------------------------------------------------------\
 
 

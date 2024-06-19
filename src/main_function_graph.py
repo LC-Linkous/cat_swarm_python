@@ -1,13 +1,13 @@
 #! /usr/bin/python3
 
 ##-------------------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/main_function_graph.py'
+#   sand_cat_python
+#   './sand_cat_python/src/main_function_graph.py'
 #   generates graphs for function based on constraints and configurations
 #   in-package demo for graphing the pareto front
 #
 #   Author(s): Lauren Linkous (LINKOUSLC@vcu.edu)
-#   Last update: June 4, 2024
+#   Last update: June 18, 2024
 ##-------------------------------------------------------------------------------\
 
 import numpy as np

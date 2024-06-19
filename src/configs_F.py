@@ -1,14 +1,14 @@
 #! /usr/bin/python3
 
 ##--------------------------------------------------------------------\
-#   cat_swarm_python
-#   './cat_swarm_python/src/configs_F.py'
+#   sand_cat_python
+#   './sand_cat_python/src/configs_F.py'
 #   Constant values for objective function. Formatted for
 #       automating objective function integration
 #
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 4, 2024
+#   Last update: June 18, 2024
 ##--------------------------------------------------------------------\
 import sys
 
@@ -17,8 +17,8 @@ from constr_F import constr_F
 
 OBJECTIVE_FUNC = func_F
 CONSTR_FUNC = constr_F
-OBJECTIVE_FUNC_NAME = "cat_swarm_python.func_F"
-CONSTR_FUNC_NAME = "cat_swarm_python.constr_F"
+OBJECTIVE_FUNC_NAME = "sand_cat_python.func_F"
+CONSTR_FUNC_NAME = "sand_cat_python.constr_F"
 
 # problem dependent variables
 LB = [[0.21, 0, 0.1]]       # Lower boundaries for input
