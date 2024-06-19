@@ -222,9 +222,9 @@ NOTE: if you close the graph as the code is running, the code will continue to r
 
 [3] Jun Sun, Wenbo Xu and Bin Feng, "A global search strategy of quantum-behaved particle swarm optimization," IEEE Conference on Cybernetics and Intelligent Systems, 2004., Singapore, 2004, pp. 111-116 vol.1, doi: 10.1109/ICCIS.2004.1460396.
 
-[4] IEEE link
+[4] X. Nie, W. Wang, and H. Nie, “Chaos Quantum-Behaved Cat Swarm Optimization Algorithm and Its Application in the PV MPPT,” Computational Intelligence and Neuroscience, vol. 2017, pp. 1–11, Jan. 2017, doi: https://doi.org/10.1155/2017/1583847.
 
-[5] IEEE link
+[5] A. M. Ahmed, T. A. Rashid, and S. Ab. M. Saeed, “Cat Swarm Optimization Algorithm: A Survey and Performance Evaluation,” Computational Intelligence and Neuroscience, vol. 2020, pp. 1–20, Jan. 2020, doi: https://doi.org/10.1155/2020/4854895.
 
 ## Publications and Integration
 This software works as a stand-alone implementation, and as one of the optimizers integrated into AntennaCAT.
