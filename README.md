@@ -1,12 +1,19 @@
-# cat_swarm_python
+# sand_cat_python
 
-Basic cat swarm optimizer written in Python.  Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
+# IN PROGRESS !!!!
+
+Basic sand cat swarm optimizer written in Python.  Modified from the [adaptive timestep PSO optimizer](https://github.com/jonathan46000/pso_python) by [jonathan46000](https://github.com/jonathan46000) to keep a consistent format between optimizers in AntennaCAT.
 
 
 Now featuring AntennaCAT hooks for GUI integration and user input handling.
  
 ## Table of Contents
 * [Cat Swarm Optimization](#cat-swarm-optimization)
+* [Sand Cat Swarm Optimization](#sand-cat-swarm-optimization)
+* [Sand Cat Swarm Optimization Vs. Cat Swarm Optimization](#sand-cat-swarm-optimization-vs-cat-swarm-optimization)
+    * [Cat Swarm Optimization (CSO)](#cat-swarm-optimization-cso)
+    * [Sand Cat Swarm Optimization (SCSO)](#sand-cat-swarm-optimization-scso)
+    * [Summary](#summary)
 * [Requirements](#requirements)
 * [Implementation](#implementation)
     * [Constraint Handling](#constraint-handling)
@@ -35,6 +42,64 @@ The seeking mode is responsible for exploring the search space to discover new a
 2) Tracing Mode:
 
 The tracing mode is responsible for exploiting the search space by following the best solutions found so far. In this mode, cats simulate a behavior where they move towards a promising position, akin to a cat chasing prey. This helps refine solutions and converge towards the global optimum.
+
+## Sand Cat Swarm Optimization
+
+
+
+
+
+
+
+
+## Sand Cat Swarm Optimization Vs. Cat Swarm Optimization
+
+Cat Swarm Optimization (CSO) and Sand Cat Swarm Optimization (SCSO) are both nature-inspired optimization algorithms, but they are based on different behavioral models and have distinct mechanisms. Here are the key differences between the two:
+
+### Cat Swarm Optimization (CSO)
+
+**Inspiration**:
+
+CSO is inspired by the behaviors of cats, particularly their seeking and tracing modes.
+
+**Behavioral Modes**:
+
+*Seeking Mode*: This mode mimics the cat's resting or exploring behavior. Cats in seeking mode explore the search space based on certain probabilities and selection mechanisms.
+
+*Tracing Mode*: This mode mimics the cat's chasing or tracking behavior. Cats in tracing mode follow the best cat in the swarm, adjusting their position based on the velocity and best position information.
+
+**Mechanism**:
+* CSO alternates between seeking and tracing modes to balance exploration and exploitation.
+* Parameters such as the seeking memory pool (SMP), seeking range of the selected dimension (SRD), counts of dimension to change (CDC), and self-position consideration (SPC) are used to control the seeking mode.
+* Tracing mode uses velocity updates similar to Particle Swarm Optimization (PSO) but focuses on following the best position found.
+
+### Sand Cat Swarm Optimization (SCSO)
+
+**Inspiration**:
+
+SCSO is inspired by the hunting and survival strategies of sand cats, which are well-adapted to desert environments.
+
+**Behavioral Strategies**:
+* SCSO incorporates specific strategies of sand cats related to hunting, such as stalking, pouncing, and other predatory behaviors.
+* The algorithm may include mechanisms that simulate the cats' adaptation to the harsh desert environment, influencing how they explore and exploit the search space.
+
+**Mechanism**:
+* SCSO typically involves different phases that emulate the behavior of sand cats during hunting and survival.
+* The algorithm uses adaptive mechanisms to balance exploration (searching new areas) and exploitation (refining known good areas).
+* Velocity and position updates in SCSO might include elements inspired by the sand cats' efficient movement and energy conservation strategies.
+
+### Summary 
+
+Both CSO and SCSO aim to find optimal solutions by mimicking natural behaviors, but they differ in the specific animal behaviors they model and the strategies they use to balance exploration and exploitation of the search space.
+
+
+| Aspect  | Cat Swarm Optimization (CSO) | Sand Cat Swarm Optimization (SCSO)|
+| ------------- | ------------- |------------- |
+| Inspiration  | General cat behavior (seeking and tracing)  | Sand cat's hunting and survival strategies |
+| Behavioral Modes  | Seeking and Tracing modes  |Hunting and survival phases  |
+| Mechanism  | Uses seeking memory pool, velocity updates, etc. | Adaptive strategies based on sand cat behavior |
+| Exploration/Exploitation  | Alternates between seeking and tracing modes  |Balances using hunting and survival strategies  |
+| Special Features | Parameters (e.g., SMP, SRD, CDC, SPC) for seeking mode  | Adaptive mechanisms inspired by sand cat movement  |
 
 
 ## Requirements
