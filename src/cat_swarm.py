@@ -121,7 +121,7 @@ class swarm:
                 cat_mode = np.concatenate((cat_mode, array_of_zeros, array_of_ones))
 
                 # shuffle
-                np.random.shuffle(cat_mode)
+                self.rng.shuffle(cat_mode)
 
             self.cat_mode = cat_mode
 
@@ -228,7 +228,7 @@ class swarm:
 
         for i in range(len(candidate_positions)):
             # Position Update (Update Rule), applied on copies
-            u = np.random.uniform(size=(1,self.input_size))
+            u = self.rng.uniform(size=(1,self.input_size))
             candidate_positions[i] = mb + self.beta * np.abs(p - g) * np.log(1 / u)
 
         if self.SPC== True: # add current cat into the pool
@@ -272,7 +272,7 @@ class swarm:
         # Randomly select new position
         candidate_idx = np.arange(0, len(candidate_probability), 1)
 
-        new_position = np.random.choice(candidate_idx, 1, p=candidate_probability)
+        new_position = self.rng.choice(candidate_idx, 1, p=candidate_probability)
 
         self.M[:, particle] = candidate_positions[new_position]
             
@@ -282,7 +282,7 @@ class swarm:
         # this is the "movement" function for the cat swarm
         p = self.Pb[:, particle]             # personal best
         g = np.hstack(self.Gb)               # global best
-        u = np.random.uniform(size=self.input_size)
+        u = self.rng.uniform(size=self.input_size)
         # new location
         self.M[:,particle] = p  + np.hstack(self.weights) * u * (g - p)
 
