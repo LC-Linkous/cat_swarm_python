@@ -168,7 +168,7 @@ class swarm:
         # MATLAB implementation: r = rand() * rg
         # Python equivalent:  np.random.uniform()  . However, uniform() is a half-open interval such that [0, 1)
         
-        r = np.random.uniform()*self.rg
+        r = self.rng.uniform()*self.rg
         
         
         # NOTE:
@@ -181,9 +181,9 @@ class swarm:
         rand_position = self.M[:, particle]
 
         # generate an array of random thetas (the routlette wheel selction from 1:360 degs)
-        random_thetas = np.random.randint(low=1, high=360, size=len(rand_position))
+        random_thetas = self.rng.integers(low=1, high=360, size=len(rand_position), endpoint=True)
         # generate an array of random numbers 
-        rand_nums = (np.random.uniform(0,1,len(rand_position)))
+        rand_nums = (self.rng.uniform(0,1,len(rand_position)))
 
         rand_position = abs(rand_nums*np.hstack(self.Gb)-self.M[:, particle])
         self.M[:, particle] = np.hstack(self.Gb)-r*rand_position*np.cos(random_thetas)
@@ -194,7 +194,7 @@ class swarm:
         # MATLAB implementation: r = rand() * rg
         # Python equivalent:  np.random.uniform()  . However, uniform() is a half-open interval such that [0, 1)
         
-        r = np.random.uniform()*self.rg
+        r = self.rng.uniform()*self.rg
 
         # adaption of:
         # cp=floor(SearchAgents_no*rand()+1);
@@ -202,12 +202,12 @@ class swarm:
         # Positions(i,j)=r*(CandidatePosition(j)-rand*Positions(i,j));
 
         # choose an idx based off random agent from the cat herd
-        # idx is from [0, number of particles)
-        agent_idx = np.random.randint(low=0, high=self.number_of_particles) 
+        # idx is from [0, number of particles). idx from 0 so do not include high
+        agent_idx =self.rng.integers(low=0, high=self.number_of_particles, endpoint=False) 
         # get the location of the agent from the idx
         candidate_position = self.M[:, agent_idx]
         # generate the random numbers to mutate n-dims of the position
-        rand_nums = (np.random.uniform(0,1,len(candidate_position)))
+        rand_nums = (self.rng.uniform(0,1,len(candidate_position)))
         # update the location with a mix of the candidate position and the current agent loc
         self.M[:,particle] = r*(candidate_position-rand_nums*self.M[:,particle] )
         
@@ -340,7 +340,7 @@ class swarm:
 
                 # r is generated in the mode func()
                 # R, but avoiding CONSTANT notation
-                R_transition = (2 * self.rg) * np.random.uniform() - self.rg # controls transition phases
+                R_transition = (2 * self.rg) * self.rng.uniform() - self.rg # controls transition phases
 
                 # split cats into the algorithm's 2 phases
                 if np.abs(R_transition)<=1: # R value is between -1 and 1 
