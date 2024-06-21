@@ -133,7 +133,7 @@ class swarm:
                 cat_mode = np.concatenate((cat_mode, array_of_zeros, array_of_ones))
 
                 # shuffle
-                np.random.shuffle(cat_mode)
+                self.rng.shuffle(cat_mode)
 
             self.cat_mode = cat_mode
 
@@ -230,9 +230,9 @@ class swarm:
             # new_position = (1+(random sign)*SRD)*current_position
         num_dimensions = len(current_position)
         for i in range(len(candidate_positions)):
-            dims_to_change = np.random.choice(num_dimensions, self.CDC, replace=False)
+            dims_to_change = self.rng.choice(num_dimensions, self.CDC, replace=False)
             for j in dims_to_change:
-                modification = (np.random.choice([-1, 1])) * self.SRD
+                modification = (self.rng.choice([-1, 1])) * self.SRD
                 candidate_positions[i][j] += modification
 
         if self.SPC== True: # add current cat into the pool
@@ -277,7 +277,7 @@ class swarm:
         # Randomly select new position
         candidate_idx = np.arange(0, len(candidate_probability), 1)
 
-        new_position = np.random.choice(candidate_idx, 1, p=candidate_probability)
+        new_position = self.rng.choice(candidate_idx, 1, p=candidate_probability)
 
         self.M[:, particle] = candidate_positions[new_position]
             
@@ -289,7 +289,7 @@ class swarm:
         # new velocity
         # new_V = old_V + random(0 to 1)*weights*(position of cat with best fitness - position of this cat )
         old_V = self.V[:,particle]
-        new_V = np.add(old_V, np.random.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[:, particle]))
+        new_V = np.add(old_V, self.rng.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[:, particle]))
 
         self.V[:,particle] = 1.0*new_V # multiply so not just a mem. address copy
 
