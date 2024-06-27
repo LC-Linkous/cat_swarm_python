@@ -66,10 +66,10 @@ class swarm:
         else:
         
             if heightl == 1:
-                lbound = np.vstack(lbound)
+                lbound = lbound
         
             if heightu == 1:
-                ubound = np.vstack(ubound)
+                ubound = ubound
 
             self.lbound = lbound
             self.ubound = ubound
@@ -78,35 +78,30 @@ class swarm:
 
             #randomly initialize the positions and velocities of the cats
             # position
-            self.M = np.vstack(np.multiply(self.rng.random((np.max([heightl, 
-                                                                     widthl]),1)), 
-                                                                     variation) + 
-                                                                     lbound)    
+            self.M = np.array(np.multiply(self.rng.random((1,np.max([heightl, widthl]))), 
+                                                                variation)+lbound)    
+
 
             # velocity
-            self.V = np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                     widthl]),1)), 
+            self.V = np.array(np.multiply(self.rng.random((1,np.max([heightl,widthl]))), 
                                                                      vlimit))
-            
+
+
 
 
             for i in range(2,int(NO_OF_PARTICLES)+1):
                 
                 self.M = \
-                    np.hstack([self.M, 
-                               np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                               widthl]),
-                                                                               1)), 
+                    np.vstack([self.M, 
+                               np.multiply( self.rng.random((1,np.max([heightl, widthl]))), 
                                                                                variation) 
-                                                                               + lbound)])
+                                                                               + lbound])
 
                 self.V = \
-                    np.hstack([self.V, 
-                               np.vstack(np.multiply( self.rng.random((np.max([heightl, 
-                                                                               widthl]),
-                                                                               1)), 
-                                                                               vlimit))])
-                
+                    np.vstack([self.V,
+                               np.multiply( self.rng.random((1,np.max([heightl, widthl]))), 
+                                                                               vlimit)])
+           
             
             #randomly classify cats into seeking or tracing. 
                 # 0 = tracing, 1 = seeking
@@ -136,8 +131,6 @@ class swarm:
                 self.rng.shuffle(cat_mode)
 
             self.cat_mode = cat_mode
-
-
 
             '''
             self.M                      : An array of current particle (cat) locations.
@@ -173,12 +166,12 @@ class swarm:
             '''
             self.output_size = output_size
             self.Active = np.ones((NO_OF_PARTICLES))                        
-            self.Gb = sys.maxsize*np.ones((np.max([heightl, widthl]),1))   
-            self.F_Gb = sys.maxsize*np.ones((output_size,1))                
+            self.Gb = sys.maxsize*np.ones((1,np.max([heightl, widthl])))   
+            self.F_Gb = sys.maxsize*np.ones((1,output_size))                
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
-            self.F_Pb = sys.maxsize*np.ones((output_size,NO_OF_PARTICLES))  
-            self.weights = np.vstack(np.array(weights))                     
-            self.targets = np.vstack(np.array(targets))                     
+            self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))  
+            self.weights = np.array(weights)                     
+            self.targets = np.array(targets)                      
             self.maxit = maxit                                             
             self.E_TOL = E_TOL                                              
             self.obj_func = obj_func                                             
@@ -200,7 +193,7 @@ class swarm:
     def call_objective(self, allow_update):
         if self.Active[self.current_particle]:
             # call the objective function. If there's an issue with the function execution, 'noError' returns False
-            newFVals, noError = self.obj_func(np.vstack(self.M[:,self.current_particle]), self.output_size)
+            newFVals, noError = self.obj_func(self.M[self.current_particle], self.output_size)
             if noError == True:
                 self.Fvals = newFVals
                 if allow_update:
@@ -210,7 +203,7 @@ class swarm:
                 else:
                     self.allow_update = 0
             return noError# return is for error reporting purposes only
-    
+  
     def seeking_mode(self, particle):
         # this is the "resting" function for the cat swarm
         # SMP : seeking memory pool. Num copies of cats made 
@@ -219,7 +212,7 @@ class swarm:
         # SPC : self-position consideration. boolean.
         
         # Step 1: generate candidate positions
-        current_position = self.M[:, particle]
+        current_position = self.M[particle]
                 
         if self.SPC == True: # current cat included in pool (added later)
             candidate_positions = np.tile(current_position, (self.SMP-1, 1))
@@ -279,7 +272,7 @@ class swarm:
 
         new_position = self.rng.choice(candidate_idx, 1, p=candidate_probability)
 
-        self.M[:, particle] = candidate_positions[new_position]
+        self.M[particle] = candidate_positions[new_position]
             
 
 
@@ -288,22 +281,21 @@ class swarm:
 
         # new velocity
         # new_V = old_V + random(0 to 1)*weights*(position of cat with best fitness - position of this cat )
-        old_V = self.V[:,particle]
-        new_V = np.add(old_V, self.rng.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[:, particle]))
+        old_V = self.V[particle]
+        new_V = np.add(old_V, self.rng.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[particle]))
 
-        self.V[:,particle] = 1.0*new_V # multiply so not just a mem. address copy
+        self.V[particle] = 1.0*new_V # multiply so not just a mem. address copy
 
         # new location
         # new_M = old_M + new_V
-        self.M[:,particle] = self.M[:,particle]+new_V
+        self.M[particle] = self.M[particle]+new_V
 
     
-  
     def check_bounds(self, particle):
         update = 0
-        for i in range(0,(np.shape(self.M)[0])):
-            if (self.lbound[i] > self.M[i,particle]) \
-               or (self.ubound[i] < self.M[i,particle]):
+        for i in range(0,(np.shape(self.M)[1])):
+            if (self.lbound[i] > self.M[particle,i]) \
+               or (self.ubound[i] < self.M[particle,i]):
                 update = i+1        
         return update
 
@@ -323,20 +315,20 @@ class swarm:
         # The first condition checks if constraints are met, 
         # and the second determins if the values are to large (positive or negitive)
         # and may cause a buffer overflow with large exponents (a bug that was found experimentally)
-        update = self.check_bounds(particle) or not self.constr_func(self.M[:,particle]) or not self.validate_obj_function(np.vstack(self.M[:,self.current_particle]))
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(np.hstack(self.M[self.current_particle]))
         if update > 0:
-            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[:,particle])==False) or (self.validate_obj_function(self.M[:,particle])==False): 
+            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False) or (self.validate_obj_function(self.M[particle])==False): 
                 variation = self.ubound-self.lbound
-                self.M[:,particle] = \
+                self.M[particle] = \
                     np.squeeze(self.rng.random() * 
-                                np.multiply(np.ones((np.shape(self.M)[0],1)),
+                                np.multiply(np.ones((1,np.shape(self.M)[1])),
                                             variation) + self.lbound)
             
     def reflecting_bound(self, particle):        
         update = self.check_bounds(particle)
-        constr = self.constr_func(self.M[:,particle])
+        constr = self.constr_func(self.M[particle])
         if (update > 0) and constr:
-            self.M[:,particle] = 1*self.Mlast
+            self.M[particle] = 1*self.Mlast
             NewV = np.multiply(-1,self.V[update-1,particle])
             self.V[update-1,particle] = NewV
         if not constr:
@@ -344,19 +336,20 @@ class swarm:
 
     def absorbing_bound(self, particle):
         update = self.check_bounds(particle)
-        constr = self.constr_func(self.M[:,particle])
+        constr = self.constr_func(self.M[particle])
         if (update > 0) and constr:
-            self.M[:,particle] = 1*self.Mlast
-            self.V[update-1,particle] = 0
+            self.M[particle] = 1*self.Mlast
+            self.V[particle,update-1] = 0
         if not constr:
             self.random_bound(particle)
 
     def invisible_bound(self, particle):
-        update = self.check_bounds(particle) or not self.constr_func(self.M[:,particle]) or not self.validate_obj_function(self.M[:,particle])
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(self.M[particle])
         if update > 0:
             self.Active[particle] = 0  
         else:
             pass          
+
 
     def handle_bounds(self, particle):
         if self.boundary == 1:
@@ -373,12 +366,12 @@ class swarm:
     def check_global_local(self, Flist, particle):
 
         if np.linalg.norm(Flist) < np.linalg.norm(self.F_Gb):
-            self.F_Gb = Flist
-            self.Gb = np.vstack(np.array(self.M[:,particle]))
+            self.F_Gb = np.array([Flist])
+            self.Gb = np.array(self.M[particle])
         
-        if np.linalg.norm(Flist) < np.linalg.norm(self.F_Pb[:,particle]):
-            self.F_Pb[:,particle] = np.squeeze(Flist)
-            self.Pb[:,particle] = self.M[:,particle]
+        if np.linalg.norm(Flist) < np.linalg.norm(self.F_Pb[particle]):
+            self.F_Pb[particle] = np.squeeze(Flist)
+            self.Pb[particle] = self.M[particle]
     
     def converged(self):
         convergence = np.linalg.norm(self.F_Gb) < self.E_TOL
@@ -400,9 +393,9 @@ class swarm:
                 "Current Particle:\n" + \
                 str(self.current_particle) +"\n" + \
                 "Current Particle Velocity\n" + \
-                str(self.V[:,self.current_particle]) +"\n" + \
+                str(self.V[self.current_particle]) +"\n" + \
                 "Current Particle Location\n" + \
-                str(self.M[:,self.current_particle]) +"\n" + \
+                str(self.M[self.current_particle]) +"\n" + \
                 "Current Seeking/Tracing Status\n" + \
                 str(self.cat_mode[self.current_particle]) +"\n" + \
                 "Absolute mean deviation\n" + \
@@ -484,8 +477,8 @@ class swarm:
         self.obj_func = obj_func 
 
     def get_obj_inputs(self):
-        return np.vstack(self.M[:,self.current_particle])
-    
+        return np.vstack(self.M[self.current_particle])
+        
     def get_convergence_data(self):
         best_eval = np.linalg.norm(self.F_Gb)
         iteration = 1*self.iter
@@ -498,12 +491,14 @@ class swarm:
         return self.F_Gb
     
     def absolute_mean_deviation_of_particles(self):
-        mean_data = np.vstack(np.mean(self.M,axis=1))
+        mean_data = np.array(np.mean(self.M, axis=0)).reshape(1, -1)
         abs_data = np.zeros(np.shape(self.M))
         for i in range(0,self.number_of_particles):
-            abs_data[:,i] = np.squeeze(np.abs(np.vstack(self.M[:,i])-mean_data))
-        abs_mean_dev = np.linalg.norm(np.mean(abs_data,axis=1))
+            abs_data[i] = np.squeeze(np.abs(self.M[i]-mean_data))
+
+        abs_mean_dev = np.linalg.norm(np.mean(abs_data,axis=0))
         return abs_mean_dev
+
 
     def error_message_generator(self, msg):
         if self.parent == None:
