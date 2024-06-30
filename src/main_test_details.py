@@ -17,29 +17,39 @@
 import numpy as np
 import time
 from cat_swarm import swarm
-import configs_F as func_configs
 
+# OBJECTIVE FUNCTION SELECTION
+#import one_dim_x_test.configs_F as func_configs     # single objective, 1D input
+import himmelblau.configs_F as func_configs         # single objective, 2D input
+#import lundquist_3_var.configs_F as func_configs     # multi objective function
 
 
 class TestDetails():
     def __init__(self):
+
+        # Constant variables
+        NO_OF_PARTICLES = 50         # Number of particles in swarm
+        #WEIGHTS = [[2, 2.2, 2]]
+        WEIGHTS = [[2, 2.2]]         # Update vector weights. Used as C1 constant in tracing mode.
+                                     # NOTE: the weight vector MUST have the same shape as the LB 
+                                     # and UB. 
+        E_TOL = 10 ** -6             # Convergence Tolerance
+        MAXIT = 5000                 # Maximum allowed iterations
+        BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
+                                     #              3 = absorbing,   4 = invisible
+        
+        # Objective function dependent variables
+        LB = func_configs.LB                    # Lower boundaries, [[0.21, 0, 0.1]]
+        UB = func_configs.UB                    # Upper boundaries, [[1, 1, 0.5]]
+        IN_VARS = func_configs.IN_VARS          # Number of input variables (x-values)   
+        OUT_VARS = func_configs.OUT_VARS        # Number of output variables (y-values)
+        TARGETS = func_configs.TARGETS          # Target values for output
+
         # Objective function dependent variables
         func_F = func_configs.OBJECTIVE_FUNC  # objective function
         constr_F = func_configs.CONSTR_FUNC   # constraint function
-        LB = func_configs.LB              # Lower boundaries, [[0.21, 0, 0.1]]
-        UB = func_configs.UB              # Upper boundaries, [[1, 1, 0.5]]   
-        OUT_VARS = func_configs.OUT_VARS  # Number of output variables (y-values)
-        IN_VARS = func_configs.IN_VARS    # Number of input variables (x-values)
-        TARGETS = func_configs.TARGETS    # Target values for output
 
-        # swarm variables
-        NO_OF_PARTICLES = 25         # Number of particles in swarm
-        WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
-        E_TOL = 10 ** -6             # Convergence Tolerance
-        MAXIT = 10000                # Maximum allowed iterations
-        BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
-                                    #              3 = absorbing,   4 = invisible 
-        
+       
         # cat swarm specific
         MR = .02                    # Mixture Ratio (MR). Small value for tracing population %.
         SMP = 5                     # Seeking memory pool. Num copies of cats made.

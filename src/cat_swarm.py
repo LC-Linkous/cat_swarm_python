@@ -166,7 +166,7 @@ class swarm:
             self.F_Gb = sys.maxsize*np.ones((1,output_size))                
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
             self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))  
-            self.weights = np.array(weights)                     
+            self.weights = np.array(weights[0])                     
             self.targets = np.array(targets)                  
             self.maxit = maxit                                             
             self.E_TOL = E_TOL                                              
@@ -281,10 +281,10 @@ class swarm:
     def tracing_mode(self, particle):
         # this is the "movement" function for the cat swarm
         p = self.Pb[particle]             # personal best
-        g = np.hstack(self.Gb)               # global best
+        g = self.Gb                       # global best
         u = self.rng.uniform(size=self.input_size)
         # new location
-        self.M[particle] = p  + np.hstack(self.weights) * u * (g - p)
+        self.M[particle] = p  + self.weights * u * (g - p)
 
       
     def check_bounds(self, particle):
