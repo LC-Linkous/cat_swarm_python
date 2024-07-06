@@ -200,6 +200,13 @@ f_{2}(\mathbf{x}) = (x_3-0.2)^4
 ```math
 f(\mathbf{x}) = sin(5 * x^3) + cos(5 * x) * (1 - tanh(x^2))
 ```
+| Num. Input Variables| Boundary | Constraints |
+|----------|----------|----------|
+| 1      | $0\leq x\leq 1$  | $0\leq x\leq 1$| |
+
+Local minima at $(0.444453, -0.0630916)$
+
+Global minima at $(0.974857, -0.954872)$
 
 
 ## Example Implementations
