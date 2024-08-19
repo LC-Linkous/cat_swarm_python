@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 14, 2024
+#   Last update: August 18, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -86,12 +86,6 @@ if __name__ == "__main__":
         # call the objective function, control 
         # when it is allowed to update and return 
         # control to optimizer
-
-        # for some objective functions, the function
-        # might not evaluate correctly (e.g., under/overflow)
-        # so when that happens, the function is not evaluated
-        # and the 'step' fucntion will re-gen values and try again
-
 
         mySwarm.call_objective(allow_update)
         iter, eval = mySwarm.get_convergence_data()
