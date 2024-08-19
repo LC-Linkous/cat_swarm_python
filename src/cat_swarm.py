@@ -3,29 +3,28 @@
 ##--------------------------------------------------------------------\
 #   cat_swarm_python
 #   './cat_swarm_python/src/cat_swarm.py'
-#   A basic Cat swarm optimization class. This class follows the same 
+#   A basic Cat Swarm Optimization class. This class follows the same 
 #       format as pso_python and pso_basic to make them interchangeable
 #       in function calls. 
 #       
 #
 #   Author(s): Lauren Linkous
-#   Last update: June 14, 2024
+#   Last update: August 18, 2024
 ##--------------------------------------------------------------------\
-
 
 import numpy as np
 from numpy.random import Generator, MT19937, shuffle
 import sys
-import time
 np.seterr(all='raise')
-
 
 class swarm:
     # arguments should take form: 
-    # swarm(int, [[float, float, ...]], 
-    # [[float, float, ...]], [[float, ...]], 
-    # float, int, [[float, ...]], float, 
-    # float, int, int, func) 
+    # swarm(int, [[float, float, ...]], [[float, float, ...]], 
+    #  [[float, ...]], float, int, [[float, ...]], 
+    #  float, int, int, 
+    #  func, func, 
+    #  float, int, float, int, bool,
+    #  class object, bool) 
     # int boundary 1 = random,      2 = reflecting
     #              3 = absorbing,   4 = invisible
     def __init__(self, NO_OF_PARTICLES, lbound, ubound,
@@ -38,7 +37,7 @@ class swarm:
         # Optional parent class func call to write out values that trigger constraint issues
         self.parent = parent 
         # Additional output for advanced debugging to TERMINAL. 
-        # Some of these messages will be returned via debugTigger
+        # Some of these messages will be returned via debug
         self.detailedWarnings = detailedWarnings 
 
         heightl = np.shape(lbound)[0]
@@ -75,19 +74,14 @@ class swarm:
             self.ubound = ubound
             variation = ubound-lbound
 
-
             #randomly initialize the positions and velocities of the cats
             # position
             self.M = np.array(np.multiply(self.rng.random((1,np.max([heightl, widthl]))), 
                                                                 variation)+lbound)    
 
-
             # velocity
             self.V = np.array(np.multiply(self.rng.random((1,np.max([heightl,widthl]))), 
                                                                      vlimit))
-
-
-
 
             for i in range(2,int(NO_OF_PARTICLES)+1):
                 
@@ -147,7 +141,7 @@ class swarm:
             self.F_Gb                   : Fitness value corresponding to the global best position.
             self.Pb                     : Personal best position for each particle.
             self.F_Pb                   : Fitness value corresponding to the personal best position for each particle.
-            self.weights                : Weights for the optimization process.
+            self.weights                : Weights for the optimization process. FLOAT
             self.targets                : Target values for the optimization process.
             self.maxit                  : Maximum number of iterations.
             self.E_TOL                  : Error tolerance.
@@ -161,7 +155,6 @@ class swarm:
             self.Flist                  : List to store fitness values.
             self.Fvals                  : List to store fitness values.
             self.Mlast                  : Last location of particle
-            self.InitDeviation          : Initial deviation of particles.
             self.delta_t                : static time modulation. retained for comparison to original repo. and swarm export
             '''
             self.output_size = output_size
@@ -170,7 +163,7 @@ class swarm:
             self.F_Gb = sys.maxsize*np.ones((1,output_size))                
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
             self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))  
-            self.weights = np.array(weights)                     
+            self.weights = weights                    
             self.targets = np.array(targets)                      
             self.maxit = maxit                                             
             self.E_TOL = E_TOL                                              
@@ -184,8 +177,7 @@ class swarm:
             self.Flist = []                                                 
             self.Fvals = []                                                 
             self.Mlast = 1*self.ubound                                      
-            self.InitDeviation = self.absolute_mean_deviation_of_particles()
-                                         
+                                        
 
             self.error_message_generator("swarm successfully initialized")
             
@@ -246,7 +238,7 @@ class swarm:
         # Step 4: Select the best position based on fitness
             #If all Fitness_values are not exactly equal, calculate the selecting probability of each
             #candidate point by equation (1), otherwise set all the selecting probability
-            #of each candidate point be 1. (2007, computational intelligence based on the behaviour of cats)
+            #of each candidate point to be 1. (2007, computational intelligence based on the behavior of cats)
 
         # Compute the L2 norm of each row
         l2_norms = np.linalg.norm(fitness_values, axis=1)
@@ -275,7 +267,6 @@ class swarm:
         self.M[particle] = candidate_positions[new_position]
             
 
-
     def tracing_mode(self, particle):
         # this is the "movement" function for the cat swarm
 
@@ -299,25 +290,14 @@ class swarm:
                 update = i+1        
         return update
 
-    def validate_obj_function(self, particle):
-        # checks the the objective function resolves with the current particle.
-        # It is possible (and likely) that obj funcs without proper error handling
-        # will throw over/underflow errors.
-        # e.g.: numpy does not support float128()
-        newFVals, noError = self.obj_func(particle, self.output_size)
-        if noError == False:
-            #print("!!!!")
-            pass
-        return noError
-
     def random_bound(self, particle):
         # If particle is out of bounds, bring the particle back in bounds
         # The first condition checks if constraints are met, 
         # and the second determins if the values are to large (positive or negitive)
         # and may cause a buffer overflow with large exponents (a bug that was found experimentally)
-        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(np.hstack(self.M[self.current_particle]))
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle])
         if update > 0:
-            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False) or (self.validate_obj_function(self.M[particle])==False): 
+            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False): 
                 variation = self.ubound-self.lbound
                 self.M[particle] = \
                     np.squeeze(self.rng.random() * 
@@ -344,12 +324,11 @@ class swarm:
             self.random_bound(particle)
 
     def invisible_bound(self, particle):
-        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(self.M[particle])
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) 
         if update > 0:
             self.Active[particle] = 0  
         else:
             pass          
-
 
     def handle_bounds(self, particle):
         if self.boundary == 1:
@@ -425,7 +404,6 @@ class swarm:
                     "Norm Flist: \n" + str(np.linalg.norm(self.F_Gb)) + "\n"
                 self.error_message_generator(msg)
 
-
     def export_swarm(self):
         swarm_export = {'lbound': self.lbound,
                         'ubound': self.ubound,
@@ -498,7 +476,6 @@ class swarm:
 
         abs_mean_dev = np.linalg.norm(np.mean(abs_data,axis=0))
         return abs_mean_dev
-
 
     def error_message_generator(self, msg):
         if self.parent == None:
