@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 19, 2024
+#   Last update: August 18, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -21,8 +21,6 @@ from cat_swarm import swarm
 #import one_dim_x_test.configs_F as func_configs     # single objective, 1D input
 import himmelblau.configs_F as func_configs         # single objective, 2D input
 #import lundquist_3_var.configs_F as func_configs     # multi objective function
-
-
 
 
 if __name__ == "__main__":
@@ -50,7 +48,7 @@ if __name__ == "__main__":
     # swarm setup
     best_eval = 1
 
-    parent = None            # for the PSO_TEST ONLY
+    parent = None            
 
     suppress_output = True   # Suppress the console output of particle swarm
 
@@ -59,7 +57,8 @@ if __name__ == "__main__":
 
     mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
                     WEIGHTS, OUT_VARS, TARGETS,
-                    E_TOL, MAXIT, BOUNDARY, func_F, constr_F)  
+                    E_TOL, MAXIT, BOUNDARY, func_F, constr_F, 
+                    parent, detailedWarnings=False)  
 
     # instantiation of particle swarm optimizer 
     while not mySwarm.complete():
@@ -71,12 +70,6 @@ if __name__ == "__main__":
         # call the objective function, control 
         # when it is allowed to update and return 
         # control to optimizer
-
-        # for some objective functions, the function
-        # might not evaluate correctly (e.g., under/overflow)
-        # so when that happens, the function is not evaluated
-        # and the 'step' fucntion will re-gen values and try again
-
 
         mySwarm.call_objective(allow_update)
         iter, eval = mySwarm.get_convergence_data()

@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 29, 2024
+#   Last update: August 18, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -28,7 +28,6 @@ class TestDetails():
         # swarm variables
         NO_OF_PARTICLES = 8          # Number of particles in swarm
         WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
-        VLIM = 1.5                   # Initial velocity limit
         E_TOL = 10 ** -4             # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
@@ -46,15 +45,6 @@ class TestDetails():
         func_F = func_configs.OBJECTIVE_FUNC  # objective function
         constr_F = func_configs.CONSTR_FUNC   # constraint function
         
-        # swarm setup
-        parent = self                 # Optional parent class for swarm 
-                                        # (Used for passing debug messages or
-                                        # other information that will appear 
-                                        # in GUI panels)
-
-        detailedWarnings = False      # Optional boolean for detailed feedback
-
-
         # Swarm vars
         self.best_eval = 1            # Starting eval value
 
@@ -87,12 +77,6 @@ class TestDetails():
         msg = "[" + str(curTime) +"] " + str(txt)
         print(msg)
 
-
-    def record_params(self):
-        # this function is called from particle_swarm.py to trigger a write to a log file
-        # running in the AntennaCAT GUI to record the parameter iteration that caused an error
-        pass
-         
 
     def run(self):
 

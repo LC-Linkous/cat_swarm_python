@@ -3,34 +3,34 @@
 ##--------------------------------------------------------------------\
 #   sand_cat_python
 #   './sand_cat_python/src/cat_swarm.py'
-#   A basic sand cat swarm optimization class. This class follows the same 
-#       format as pso_python and pso_basic to make them interchangeable
-#       in function calls. 
+#   A basic sand cat swarm optimization class. See the README for
+#       publication details.
 #       
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 19, 2024
+#   Last update: August 18, 2024
 ##--------------------------------------------------------------------\
 
 
 import numpy as np
 from numpy.random import Generator, MT19937, shuffle
 import sys
-import time
 np.seterr(all='raise')
 
 
 class swarm:
     # arguments should take form: 
-    # swarm(int, [[float, float, ...]], 
-    # [[float, float, ...]], [[float, ...]], 
-    # float, int, [[float, ...]], float, 
-    # float, int, int, func) 
+    # swarm(int, [[float, float, ...]], [[float, float, ...]], 
+    #  [[float, ...]], int, [[float, ...]], 
+    #  float, int, int, 
+    #  func, func,
+    #  class object, bool) 
     # int boundary 1 = random,      2 = reflecting
     #              3 = absorbing,   4 = invisible
     def __init__(self, NO_OF_PARTICLES, lbound, ubound,
                  weights, output_size, targets,
-                 E_TOL, maxit, boundary, obj_func, constr_func,
+                 E_TOL, maxit, boundary, 
+                 obj_func, constr_func,
                  parent=None, detailedWarnings=False):  
 
         
@@ -139,8 +139,6 @@ class swarm:
             self.Flist = []                                                 
             self.Fvals = []                                                 
             self.Mlast = 1*self.ubound                                      
-            self.InitDeviation = self.absolute_mean_deviation_of_particles()
-                                         
 
             self.error_message_generator("swarm successfully initialized")
             
@@ -216,25 +214,14 @@ class swarm:
                 update = i+1        
         return update
 
-    def validate_obj_function(self, particle):
-        # checks the the objective function resolves with the current particle.
-        # It is possible (and likely) that obj funcs without proper error handling
-        # will throw over/underflow errors.
-        # e.g.: numpy does not support float128()
-        newFVals, noError = self.obj_func(particle, self.output_size)
-        if noError == False:
-            #print("!!!!")
-            pass
-        return noError
-
     def random_bound(self, particle):
         # If particle is out of bounds, bring the particle back in bounds
         # The first condition checks if constraints are met, 
         # and the second determins if the values are to large (positive or negitive)
         # and may cause a buffer overflow with large exponents (a bug that was found experimentally)
-        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(np.hstack(self.M[self.current_particle]))
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle])
         if update > 0:
-            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False) or (self.validate_obj_function(self.M[particle])==False): 
+            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False): 
                 variation = self.ubound-self.lbound
                 self.M[particle] = \
                     np.squeeze(self.rng.random() * 
@@ -261,7 +248,7 @@ class swarm:
             self.random_bound(particle)
 
     def invisible_bound(self, particle):
-        update = self.check_bounds(particle) or not self.constr_func(self.M[particle]) or not self.validate_obj_function(self.M[particle])
+        update = self.check_bounds(particle) or not self.constr_func(self.M[particle])
         if update > 0:
             self.Active[particle] = 0  
         else:
