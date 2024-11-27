@@ -20,14 +20,14 @@ from cat_swarm import swarm
 
 # OBJECTIVE FUNCTION SELECTION
 #import one_dim_x_test.configs_F as func_configs     # single objective, 1D input
-#import himmelblau.configs_F as func_configs         # single objective, 2D input
-import lundquist_3_var.configs_F as func_configs     # multi objective function
+import himmelblau.configs_F as func_configs         # single objective, 2D input
+#import lundquist_3_var.configs_F as func_configs     # multi objective function
 
 
 if __name__ == "__main__":
     # swarm variables
     NO_OF_PARTICLES = 8          # Number of particles in swarm
-    WEIGHTS = 2                  # Update vector weights. Used as C1 constant in tracing mode.
+    WEIGHTS = [2]                  # Update vector weights. Used as C1 constant in tracing mode.
     VLIM = 1.5                   # Initial velocity limit
     E_TOL = 10 ** -4             # Convergence Tolerance
     MAXIT = 10000                # Maximum allowed iterations

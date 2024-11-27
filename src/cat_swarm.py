@@ -59,7 +59,7 @@ class swarm:
                 pass
             else:
                 self.parent.record_params()
-                self.parent.debug_message_printout("Error lbound and ubound must be 1xN-dimensional \
+                self.parent.updateStatusText("Error lbound and ubound must be 1xN-dimensional \
                                                         arrays  with the same length")
            
         else:
@@ -164,7 +164,7 @@ class swarm:
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
             self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))  
             self.weights = weights                    
-            self.targets = np.array(targets)                      
+            self.targets = np.array(targets).reshape(-1, 1)                       
             self.maxit = maxit                                             
             self.E_TOL = E_TOL                                              
             self.obj_func = obj_func                                             
@@ -176,7 +176,15 @@ class swarm:
             self.boundary = boundary                                       
             self.Flist = []                                                 
             self.Fvals = []                                                 
-            self.Mlast = 1*self.ubound                                      
+            self.Mlast = 1*self.ubound        
+
+            self.createCandidateSet = True
+            self.candidateCtr = 0             
+            self.candidate_positions = []
+            self.candidate_probability = []      
+            self.fitness_values = []
+            self.doneCandidateIteration = True     
+            self.evaluateCandidate = False 
                                         
 
             self.error_message_generator("swarm successfully initialized")
@@ -184,19 +192,39 @@ class swarm:
 
     def call_objective(self, allow_update):
         if self.Active[self.current_particle]:
-            # call the objective function. If there's an issue with the function execution, 'noError' returns False
-            newFVals, noError = self.obj_func(self.M[self.current_particle], self.output_size)
-            if noError == True:
-                self.Fvals = newFVals
-                if allow_update:
-                    self.Flist = abs(self.targets - self.Fvals)
-                    self.iter = self.iter + 1
-                    self.allow_update = 1
+
+            if self.evaluateCandidate == False:
+                # Normal objective function call for particle
+                # call the objective function. 
+                # If there's an issue with the function execution, 'noError' returns False
+                newFVals, noError = self.obj_func(self.M[self.current_particle], self.output_size)
+                if noError == True:
+                    self.Fvals = np.array(newFVals).reshape(-1, 1)
+                    if allow_update:
+                        self.Flist = abs(self.targets - self.Fvals)
+                        self.iter = self.iter + 1
+                        self.allow_update = 1
+                    else:
+                        self.allow_update = 0
+            else:
+                # evaluating a candidate position
+                # call the objective function. 
+                # If there's an issue with the function execution, 'noError' returns False
+
+                # Seeking
+                # Step 3: calculate fitness values of all candidates
+                # with additional error checking  
+
+                newFVals, noError = self.obj_func(self.candidate_positions[self.candidateCtr], self.output_size)
+                if noError == True:
+                    self.fitness_values[self.candidateCtr] = 1.0*np.hstack(newFVals)
                 else:
-                    self.allow_update = 0
+                    pass # leave as sys.maxsize
+
+
             return noError# return is for error reporting purposes only
   
-    def seeking_mode(self, particle):
+    def seeking_mode_create_candidates(self, particle):
         # this is the "resting" function for the cat swarm
         # SMP : seeking memory pool. Num copies of cats made 
         # SRD : seeking range of the selected dimension 
@@ -207,64 +235,77 @@ class swarm:
         current_position = self.M[particle]
                 
         if self.SPC == True: # current cat included in pool (added later)
-            candidate_positions = np.tile(current_position, (self.SMP-1, 1))
+            self.candidate_positions = np.tile(current_position, (self.SMP-1, 1))
         else: # current cat not included. make SMP copies
-            candidate_positions = np.tile(current_position, (self.SMP, 1))
+            self.candidate_positions  = np.tile(current_position, (self.SMP, 1))
 
         # Step 2: modify each candidate position
             # new_position = (1+(random sign)*SRD)*current_position
         num_dimensions = len(current_position)
-        for i in range(len(candidate_positions)):
+        for i in range(len(self.candidate_positions)):
             dims_to_change = self.rng.choice(num_dimensions, self.CDC, replace=False)
             for j in dims_to_change:
                 modification = (self.rng.choice([-1, 1])) * self.SRD
-                candidate_positions[i][j] += modification
+                self.candidate_positions [i][j] += modification
 
         if self.SPC== True: # add current cat into the pool
-            candidate_positions = np.vstack((candidate_positions, current_position))
+            self.candidate_positions  = np.vstack((self.candidate_positions, current_position))
+
+
+        self.fitness_values =  np.ones((self.SMP,self.output_size))*sys.maxsize
+        self.idx = 0
 
         # Step 3: calculate fitness values of all candidates
-            # with additional error checking
-        fitness_values =  np.ones((self.SMP,self.output_size))*sys.maxsize
-        idx = 0
-        for i in candidate_positions:
-                # validate and append
-                newFVals, noError = self.obj_func(i, self.output_size)
-                if noError == True:
-                    fitness_values[idx] = 1.0*np.hstack(newFVals)
-                else:
-                   pass # leave as sys.maxsize
-                idx = idx + 1 
+        # with additional error checking  
+        # 
+        # HAPPENS IN OBJECTIVE FUNCTION CALL     
+
+
+    # def seeking_mode_evaluate_candidates(self, idx):
+    #     # Step 3: calculate fitness values of all candidates
+    #         # with additional error checking
+
+    #     # for i in self.candidate_positions:
+    #     # validate and append
+    #     newFVals, noError = self.obj_func(self.candidate_positions[idx], self.output_size)
+    #     if noError == True:
+    #         self.fitness_values[idx] = 1.0*np.hstack(newFVals)
+    #     else:
+    #         pass # leave as sys.maxsize
+    #     #idx = idx + 1 
+
+    def seeking_mode_best_position(self, particle):
         # Step 4: Select the best position based on fitness
             #If all Fitness_values are not exactly equal, calculate the selecting probability of each
             #candidate point by equation (1), otherwise set all the selecting probability
             #of each candidate point to be 1. (2007, computational intelligence based on the behavior of cats)
 
         # Compute the L2 norm of each row
-        l2_norms = np.linalg.norm(fitness_values, axis=1)
+        l2_norms = np.linalg.norm(self.fitness_values, axis=1)
         # Check if all L2 norms are the same
         all_norms_same = np.all(l2_norms == l2_norms[0])
 
-        candidate_probability = np.ones(len(fitness_values))/len(fitness_values)
+
+        self.candidate_probability = np.ones(len(self.fitness_values))/len(self.fitness_values)
         if all_norms_same == False: #calculate probability
             idx = 0
             # prob = {abs(fitness_cat-fitness_max)}/{fitness_max - fitness_min}
-            for c in candidate_positions:
+            for c in self.candidate_positions :
                 FS_cat = l2_norms[idx]
                 FSmin = np.min(l2_norms)
                 FSmax = np.max(l2_norms)
                 FSb =  FSmax# max bc minimization problem
-                candidate_probability[idx] = abs(FS_cat-FSb)/abs(FSmax-FSmin)
+                self.candidate_probability [idx] = abs(FS_cat-FSb)/abs(FSmax-FSmin)
                 idx = idx + 1
         
         # normalize the probability so it adds to 1
-        candidate_probability = candidate_probability/ np.sum(candidate_probability)
+        self.candidate_probability  = self.candidate_probability / np.sum(self.candidate_probability )
         # Randomly select new position
-        candidate_idx = np.arange(0, len(candidate_probability), 1)
+        candidate_idx = np.arange(0, len(self.candidate_probability ), 1)
 
-        new_position = self.rng.choice(candidate_idx, 1, p=candidate_probability)
+        new_position = self.rng.choice(candidate_idx, 1, p=self.candidate_probability)
 
-        self.M[particle] = candidate_positions[new_position]
+        self.M[particle] = self.candidate_positions[new_position]
             
 
     def tracing_mode(self, particle):
@@ -390,11 +431,39 @@ class swarm:
                     # this combines the update_velocity and update_point in the pso_python repos
                 if self.cat_mode[self.current_particle] == 0: #tracing
                     self.tracing_mode(self.current_particle)
+
+                    # remove this after debug
+                    #self.doneCandidateIteration == True
                 else: # seeking
-                    self.seeking_mode(self.current_particle)
+                    #create the candidate pool if it doesnt exist
+                    if self.createCandidateSet == True:
+                        self.candidateCtr = -1 #incremented to idx 0 in next if statement
+                        self.seeking_mode_create_candidates(self.current_particle)
+                        self.createCandidateSet = False
+                        self.evaluateCandidate = True
+                    else:
+                        pass # don't create, just iterate in next steps
+                    
+                    if self.candidateCtr < (len(self.candidate_positions)-1):
+                        # iterate through the list of the candidates.
+                        # can't call the objective function FROM this class, 
+                        # so use a bool to toggle what is being evaluated
+                        self.candidateCtr = self.candidateCtr + 1
+                        self.doneCandidateIteration = False #redundant, remove in cleanup
+
+                    else:
+                        #hit the end of the candidate list. 
+                        self.evaluateCandidate = False #for objective func toggle
+                        self.seeking_mode_best_position(self.current_particle)
+                        self.doneCandidateIteration = True
+                        # create a new list next time a particle is in seeking mode
+                        self.createCandidateSet = True
+
 
                 self.handle_bounds(self.current_particle)
-            self.current_particle = self.current_particle + 1
+
+            if self.doneCandidateIteration == True:
+                self.current_particle = self.current_particle + 1
             if self.current_particle == self.number_of_particles:
                 self.current_particle = 0
             if self.complete() and not suppress_output:
@@ -481,4 +550,4 @@ class swarm:
         if self.parent == None:
             print(msg)
         else:
-            self.parent.debug_message_printout(msg)
+            self.parent.updateStatusText(msg)
