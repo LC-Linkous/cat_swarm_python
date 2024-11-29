@@ -9,7 +9,7 @@
 #       
 #
 #   Author(s): Lauren Linkous
-#   Last update: August 18, 2024
+#   Last update: November 28, 2024
 ##--------------------------------------------------------------------\
 
 import numpy as np
@@ -186,7 +186,6 @@ class swarm:
             self.doneCandidateIteration = True     
             self.evaluateCandidate = False 
                                         
-
             self.error_message_generator("swarm successfully initialized")
             
 
@@ -261,19 +260,6 @@ class swarm:
         # HAPPENS IN OBJECTIVE FUNCTION CALL     
 
 
-    # def seeking_mode_evaluate_candidates(self, idx):
-    #     # Step 3: calculate fitness values of all candidates
-    #         # with additional error checking
-
-    #     # for i in self.candidate_positions:
-    #     # validate and append
-    #     newFVals, noError = self.obj_func(self.candidate_positions[idx], self.output_size)
-    #     if noError == True:
-    #         self.fitness_values[idx] = 1.0*np.hstack(newFVals)
-    #     else:
-    #         pass # leave as sys.maxsize
-    #     #idx = idx + 1 
-
     def seeking_mode_best_position(self, particle):
         # Step 4: Select the best position based on fitness
             #If all Fitness_values are not exactly equal, calculate the selecting probability of each
@@ -317,7 +303,6 @@ class swarm:
         new_V = np.add(old_V, self.rng.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[particle]))
 
         self.V[particle] = 1.0*new_V # multiply so not just a mem. address copy
-
         # new location
         # new_M = old_M + new_V
         self.M[particle] = self.M[particle]+new_V
