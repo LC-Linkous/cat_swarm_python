@@ -109,7 +109,7 @@ class TestGraph():
         self.ax2.set_zlabel('x_3')
         self.scatter2 = None
 
-    def debug_message_printout(self, txt):
+    def updateStatusText(self, txt):
         if txt is None:
             return
         # sets the string as it gets it

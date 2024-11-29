@@ -87,7 +87,7 @@ class TestDetails():
                         parent=parent, detailedWarnings=detailedWarnings)
 
 
-    def debug_message_printout(self, txt):
+    def updateStatusText(self, txt):
         if txt is None:
             return
         # sets the string as it gets it
