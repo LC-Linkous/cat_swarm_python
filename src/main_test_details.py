@@ -9,8 +9,8 @@
 #       error messages directly from the 'swarm' class. Format updates are 
 #       for integration in the AntennaCAT GUI.
 #
-#   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: August 18, 2024
+#   Author(s): Lauren Linkous 
+#   Last update: November 28, 2024
 ##--------------------------------------------------------------------\
 
 
@@ -83,7 +83,7 @@ class TestDetails():
                         WEIGHTS, OUT_VARS, TARGETS,
                         E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
                         MR=MR, SMP=SMP, SRD=SRD, CDC=CDC, SPC=SPC,
-                        beta=BETA, input_size=IN_VARS, 
+                        beta=BETA,
                         parent=parent, detailedWarnings=detailedWarnings)
 
 
