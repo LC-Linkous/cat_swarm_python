@@ -10,13 +10,13 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: August 18, 2024
+#   Last update: March 13, 2025
 ##--------------------------------------------------------------------\
 
 
-import numpy as np
-from cat_swarm import swarm
+import pandas as pd
 
+from cat_swarm import swarm
 
 # OBJECTIVE FUNCTION SELECTION
 #import one_dim_x_test.configs_F as func_configs     # single objective, 1D input
@@ -27,12 +27,12 @@ import himmelblau.configs_F as func_configs         # single objective, 2D input
 if __name__ == "__main__":
     # swarm variables
     NO_OF_PARTICLES = 8          # Number of particles in swarm
-    WEIGHTS = [2]                  # Update vector weights. Used as C1 constant in tracing mode.
+    WEIGHTS = [2]                # Update vector weights. Used as C1 constant in tracing mode.
     VLIM = 1.5                   # Initial velocity limit
-    E_TOL = 10 ** -4             # Convergence Tolerance
+    TOL = 10 ** -4               # Convergence Tolerance
     MAXIT = 10000                # Maximum allowed iterations
     BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
-                                    #              3 = absorbing,   4 = invisible 
+                                 #              3 = absorbing,   4 = invisible 
     
     
     # Objective function dependent variables
@@ -64,11 +64,24 @@ if __name__ == "__main__":
 
     allow_update = True      # Allow objective call to update state 
 
+    # Constant variables
+    opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],     # Number of particles in swarm
+                'BOUNDARY': [BOUNDARY],                     # int boundary 1 = random,      2 = reflecting
+                                                            #              3 = absorbing,   4 = invisible
+                'WEIGHTS': [WEIGHTS],                       # Update vector weights
+                'VLIM':  [VLIM],                            # Initial velocity limit
+                'MR': [MR],                                 # Mixture Ratio (MR). Small value for tracing population %.
+                'SMP': [SMP],                               # Seeking memory pool. Num copies of cats made.
+                'SRD': [SRD],                               # Seeking range of the selected dimension. 
+                'CDC': [CDC],                               # Counts of dimension to change. mutation.
+                'SPC': [SPC]}                                # self-position consideration. boolean.
 
-    mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
-                    WEIGHTS, VLIM, OUT_VARS, TARGETS,
-                    E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
-                    MR=MR, SMP=SMP, SRD=SRD, CDC=CDC, SPC=SPC)  
+    opt_df = pd.DataFrame(opt_params)
+    mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
+                            func_F, constr_F,
+                            opt_df,
+                            parent=parent)     
+
 
     # instantiation of particle swarm optimizer 
     while not mySwarm.complete():
