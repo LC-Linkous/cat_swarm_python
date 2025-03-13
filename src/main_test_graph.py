@@ -12,11 +12,12 @@
 #       matplotlib plot of particle location
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: August 18, 2024
+#   Last update: March 13, 2025
 ##--------------------------------------------------------------------\
 
 
 import numpy as np
+import pandas as pd
 import time
 import matplotlib.pyplot as plt
 from cat_swarm import swarm
@@ -35,7 +36,7 @@ class TestGraph():
         # swarm variables
         NO_OF_PARTICLES = 8          # Number of particles in swarm
         WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
-        E_TOL = 10 ** -4             # Convergence Tolerance
+        TOL = 10 ** -4               # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
                                      #              3 = absorbing,   4 = invisible 
@@ -62,18 +63,20 @@ class TestGraph():
 
         self.suppress_output = True   # Suppress the console output of particle swarm
 
-        detailedWarnings = False      # Optional boolean for detailed feedback
-                                        # (Independent of suppress output. 
-                                        #  Includes error messages and warnings)
-
         self.allow_update = True      # Allow objective call to update state 
 
 
+        # Constant variables
+        opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],  # Number of particles in swarm
+                    'BOUNDARY': [BOUNDARY],                  # int boundary 1 = random,      2 = reflecting
+                                                            #              3 = absorbing,   4 = invisible
+                    'WEIGHTS': [WEIGHTS]}                    # Update vector weights
 
-        self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
-                        WEIGHTS, OUT_VARS, TARGETS,
-                        E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
-                        parent=parent, detailedWarnings=detailedWarnings)  
+        opt_df = pd.DataFrame(opt_params)
+        self.mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
+                                func_F, constr_F,
+                                opt_df,
+                                parent=parent)  
 
 
         # Matplotlib setup

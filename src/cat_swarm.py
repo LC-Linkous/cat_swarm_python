@@ -8,8 +8,9 @@
 #       
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: August 18, 2024
+#   Last update: March 13, 2025
 ##--------------------------------------------------------------------\
+
 
 
 import numpy as np
@@ -19,26 +20,32 @@ np.seterr(all='raise')
 
 
 class swarm:
-    # arguments should take form: 
-    # swarm(int, [[float, float, ...]], [[float, float, ...]], 
-    #  [[float, ...]], int, [[float, ...]], 
-    #  float, int, int, 
-    #  func, func,
-    #  class object, bool) 
-    # int boundary 1 = random,      2 = reflecting
-    #              3 = absorbing,   4 = invisible
-    def __init__(self, NO_OF_PARTICLES, lbound, ubound,
-                 weights, output_size, targets,
-                 E_TOL, maxit, boundary, 
-                 obj_func, constr_func,
-                 parent=None, detailedWarnings=False):  
-
+    # arguments should take the form: 
+    # swarm([[float, float, ...]], [[float, float, ...]], [[float, ...]], float, int,
+    # func, func,
+    # dataFrame,
+    # class obj) 
+    #  
+    # opt_df contains class-specific tuning parameters
+    # NO_OF_PARTICLES: int
+    # weights: [[float, float, float]]
+    # boundary: int. 1 = random, 2 = reflecting, 3 = absorbing,   4 = invisible
+    #
         
+    def __init__(self,  lbound, ubound, targets,E_TOL, maxit,
+                    obj_func, constr_func, 
+                    opt_df,
+                    parent=None): 
+
         # Optional parent class func call to write out values that trigger constraint issues
         self.parent = parent 
-        # Additional output for advanced debugging to TERMINAL. 
-        # Some of these messages will be returned via debugTigger
-        self.detailedWarnings = detailedWarnings 
+
+
+        #unpack the opt_df standardized vals
+        NO_OF_PARTICLES = opt_df['NO_OF_PARTICLES'][0]
+        weights = opt_df['WEIGHTS'][0]
+        boundary = opt_df['BOUNDARY'][0]
+
 
         heightl = np.shape(lbound)[0]
         widthl = np.shape(lbound)[1]
@@ -119,14 +126,14 @@ class swarm:
             '''
             self.S = 2
             self.rg = None # set at the start of iterating through a population
-            self.output_size = output_size
+            self.output_size = len(targets)
             self.Active = np.ones((NO_OF_PARTICLES))                        
             self.Gb = sys.maxsize*np.ones((1,np.max([heightl, widthl])))   
-            self.F_Gb = sys.maxsize*np.ones((1,output_size))                
+            self.F_Gb = sys.maxsize*np.ones((1,self.output_size))                
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
-            self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))
+            self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,self.output_size))
             self.weights = np.array(weights)                     
-            self.targets = np.array(targets)                    
+            self.targets = np.array(targets).reshape(-1, 1)                     
             self.maxit = maxit                                             
             self.E_TOL = E_TOL                                              
             self.obj_func = obj_func                                             
@@ -140,7 +147,7 @@ class swarm:
             self.Fvals = []                                                 
             self.Mlast = 1*self.ubound                                      
 
-            self.error_message_generator("swarm successfully initialized")
+            self.debug_message_printout("swarm successfully initialized")
             
 
     def call_objective(self, allow_update):
@@ -148,7 +155,7 @@ class swarm:
             # call the objective function. If there's an issue with the function execution, 'noError' returns False
             newFVals, noError = self.obj_func(self.M[self.current_particle], self.output_size)
             if noError == True:
-                self.Fvals = newFVals
+                self.Fvals = np.array(newFVals).reshape(-1, 1)
                 if allow_update:
                     self.Flist = abs(self.targets - self.Fvals)
                     self.iter = self.iter + 1
@@ -264,7 +271,7 @@ class swarm:
         elif self.boundary == 4:
             self.invisible_bound(particle)
         else:
-            self.error_message_generator("Error: No boundary is set!")
+            self.debug_message_printout("Error: No boundary is set!")
 
     def check_global_local(self, Flist, particle):
 
@@ -300,7 +307,7 @@ class swarm:
                 "Absolute mean deviation\n" + \
                 str(self.absolute_mean_deviation_of_particles()) +"\n" + \
                 "-----------------------------"
-            self.error_message_generator(msg)
+            self.debug_message_printout(msg)
             
         if self.allow_update: # The first time step is called, this is false
             if self.Active[self.current_particle]:
@@ -341,12 +348,13 @@ class swarm:
             self.current_particle = self.current_particle + 1
             if self.current_particle == self.number_of_particles:
                 self.current_particle = 0
+
             if self.complete() and not suppress_output:
                 msg =  "\nPoints: \n" + str(self.Gb) + "\n" + \
                     "Iterations: \n" + str(self.iter) + "\n" + \
                     "Flist: \n" + str(self.F_Gb) + "\n" + \
                     "Norm Flist: \n" + str(np.linalg.norm(self.F_Gb)) + "\n"
-                self.error_message_generator(msg)
+                self.debug_message_printout(msg)
 
 
     def export_swarm(self):
@@ -405,10 +413,10 @@ class swarm:
         return iteration, best_eval
         
     def get_optimized_soln(self):
-        return self.Gb 
+        return self.Gb.reshape(-1, 1) #standardization  
     
     def get_optimized_outs(self):
-        return self.F_Gb
+        return self.F_Gb[0] #correction for extra brackets that happen with the math/passing
     
     def absolute_mean_deviation_of_particles(self):
         mean_data = np.array(np.mean(self.M, axis=0)).reshape(1, -1)
@@ -419,7 +427,7 @@ class swarm:
         abs_mean_dev = np.linalg.norm(np.mean(abs_data,axis=0))
         return abs_mean_dev
 
-    def error_message_generator(self, msg):
+    def debug_message_printout(self, msg):
         if self.parent == None:
             print(msg)
         else:
