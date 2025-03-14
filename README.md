@@ -327,7 +327,7 @@ Global minima at $(0.974857, -0.954872)$
 `main_test.py` provides a sample use case of the optimizer. 
 
 ### Detailed Messages
-`main_test_details.py` provides an example using a parent class, and the self.suppress_output and detailedWarnings flags to control error messages that are passed back to the parent class to be printed with a timestamp. This implementation sets up the hooks for integration with AntennaCAT to provide the user feedback of warnings and errors.
+`main_test_details.py` provides an example using a parent class, and the self.suppress_output flag to control error messages that are passed back to the parent class to be printed with a timestamp. This implementation sets up the hooks for integration with AntennaCAT to provide the user feedback of warnings and errors.
 
 ### Realtime Graph
 
