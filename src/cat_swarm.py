@@ -9,42 +9,62 @@
 #       
 #
 #   Author(s): Lauren Linkous
-#   Last update: November 28, 2024
+#   Last update: March 13, 2025
 ##--------------------------------------------------------------------\
 
 
 import numpy as np
 from numpy.random import Generator, MT19937, shuffle
 import sys
-import time
 np.seterr(all='raise')
 
 
 class swarm:
-    # arguments should take form: 
-    # swarm(int, [[float, float, ...]], 
-    # [[float, float, ...]], [[float, ...]], 
-    # float, int, [[float, ...]], float, 
-    # float, int, int, func) 
-    # int boundary 1 = random,      2 = reflecting
-    #              3 = absorbing,   4 = invisible
-    def __init__(self, NO_OF_PARTICLES, lbound, ubound,
-                 weights, output_size, targets,
-                 E_TOL, maxit, boundary, 
-                 obj_func, constr_func,
-                 MR=0.12, SMP=5, SRD=0.2, CDC=2, SPC=False,
-                 beta=0.5,
-                 parent=None, detailedWarnings=False, runningWithSim=False):  
+    # arguments should take the form: 
+    # swarm([[float, float, ...]], [[float, float, ...]], [[float, ...]], float, int,
+    # func, func,
+    # dataFrame,
+    # class obj,
+    # bool, class obj) 
+    #  
+    # opt_df contains class-specific tuning parameters
+    # NO_OF_PARTICLES: int
+    # weights: [[float, float, float]]
+    # boundary: int. 1 = random, 2 = reflecting, 3 = absorbing,   4 = invisible
+    # MR: float. Small value
+    # SMP: int
+    # SRD: float
+    # CDC: int
+    # SPC: bool
+    #              
 
+    def __init__(self,  lbound, ubound, targets, E_TOL, maxit,
+                obj_func, constr_func, 
+                opt_df,
+                parent=None, 
+                useSurrogateModel=False, surrogateOptimizer=None): 
         
+
         # Optional parent class func call to write out values that trigger constraint issues
         self.parent = parent 
-        # Additional output for advanced debugging to TERMINAL. 
-        # Some of these messages will be returned via debugTigger
-        self.detailedWarnings = detailedWarnings 
+        # vars for using surrogate model
+        self.useSurrogateModel = useSurrogateModel # bool for if using surrogate model
+        self.surrogateOptimizer = surrogateOptimizer     # pass in the class for the surrogate model
+                                                   # optimizer. this is configured as needed 
 
-        #antennaCAT vars
-        self.runningWithSim=runningWithSim
+
+        #unpack the opt_df standardized vals
+        NO_OF_PARTICLES = opt_df['NO_OF_PARTICLES'][0]
+        weights = opt_df['WEIGHTS'][0]
+        boundary = opt_df['BOUNDARY'][0]
+        MR = opt_df['MR'][0]
+        SMP = opt_df['SMP'][0]
+        SRD = opt_df['SRD'][0]
+        CDC = opt_df['CDC'][0]
+        SPC = opt_df['SPC'][0]
+        beta = opt_df['BETA'][0]
+
+
 
         heightl = np.shape(lbound)[0]
         widthl = np.shape(lbound)[1]
@@ -162,13 +182,13 @@ class swarm:
             self.Mlast                  : Last location of particle
             '''
             self.beta = beta
-            self.output_size = output_size
+            self.output_size = len(targets)
             self.input_size = len(lbound)
             self.Active = np.ones((NO_OF_PARTICLES))                        
             self.Gb = sys.maxsize*np.ones((1,np.max([heightl, widthl])))   
-            self.F_Gb = sys.maxsize*np.ones((1,output_size))                
+            self.F_Gb = sys.maxsize*np.ones((1,self.output_size))                
             self.Pb = sys.maxsize*np.ones(np.shape(self.M))                 
-            self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,output_size))  
+            self.F_Pb = sys.maxsize*np.ones((NO_OF_PARTICLES,self.output_size))  
             self.weights = np.array(weights[0])                     
             self.targets = np.array(targets).reshape(-1, 1)                  
             self.maxit = maxit                                             
@@ -196,9 +216,67 @@ class swarm:
 
 
 
-            self.error_message_generator("swarm successfully initialized")
+            self.debug_message_printout("swarm successfully initialized")
             
+    def minimize_surrogate_model(self):
+        canUseSurrogate = False
+        if self.parent == None:
+            self.debug_message_printout("ERROR: no parent selected. cannot use surrogate model. continuing with optimization")
+            return canUseSurrogate
+        
+        if self.surrogateOptimizer == None:
+            self.debug_message_printout("ERROR: no second optimizer selected. cannot use surrogate model. continuing with optimization")
+            return canUseSurrogate           
 
+        try:
+
+            # call up to the parent function to define and fit the surrogate func, 
+            # and set up the surrogate optimizer 
+            surrogateOptimizer = self.parent.fit_and_create_surogate(self.M, self.F_Pb,self.surrogateOptimizer)
+
+
+            best_eval = 10 # set high for testing
+            # sometimes an optimizer doesn't call the objective function, so only print out when it does
+            last_iter = 0
+
+            while not surrogateOptimizer.complete():
+                # step through optimizer processing
+                surrogateOptimizer.step(suppress_output=False)
+
+                # call the objective function, control 
+                # when it is allowed to update and return 
+                # control to optimizer
+                surrogateOptimizer.call_objective(allow_update=True)
+                iter, eval = surrogateOptimizer.get_convergence_data()
+                if (eval < best_eval) and (eval != 0):
+                    best_eval = eval
+                if iter > last_iter:
+                    last_iter = iter
+
+            print("************************************************")
+            print("Internal Objective Function Iterations: " + str (iter))
+            print("Internal Best Eval: " + str(best_eval))
+
+            # check if G_best of surrogate optimizer is better than what the main optimizer is finding
+            potential_Gb =  np.array(surrogateOptimizer.get_optimized_soln()).reshape(1 ,-1)
+            potential_F_Gb =  np.array(surrogateOptimizer.get_optimized_outs()).reshape(1 ,-1)
+            if np.linalg.norm(potential_F_Gb) < np.linalg.norm(self.F_Gb):
+                self.F_Gb = np.array(potential_F_Gb)
+                self.Gb = np.array(potential_Gb[0])
+                print("NEW BEST!!!!!!")      
+                print("self.F_Gb")
+                print(self.F_Gb)
+                print("self.Gb")
+                print(self.Gb)
+            
+            canUseSurrogate = True
+            
+        except Exception as e:
+            print(e)
+            self.debug_message_printout("ERROR: failed to set up and minimize surrogate model")
+
+        return canUseSurrogate
+    
     def call_objective(self, allow_update):
         if self.Active[self.current_particle]:
 
@@ -380,7 +458,7 @@ class swarm:
         elif self.boundary == 4:
             self.invisible_bound(particle)
         else:
-            self.error_message_generator("Error: No boundary is set!")
+            self.debug_message_printout("Error: No boundary is set!")
 
     def check_global_local(self, Flist, particle):
 
@@ -418,7 +496,7 @@ class swarm:
                 "Absolute mean deviation\n" + \
                 str(self.absolute_mean_deviation_of_particles()) +"\n" + \
                 "-----------------------------"
-            self.error_message_generator(msg)
+            self.debug_message_printout(msg)
             
         if self.allow_update: # The first time step is called, this is false
             if self.Active[self.current_particle]:
@@ -462,13 +540,17 @@ class swarm:
             if self.doneCandidateIteration == True:
                 self.current_particle = self.current_particle + 1
             if self.current_particle == self.number_of_particles:
+                if self.useSurrogateModel == True:
+                    print("MINIMIZING SURROGATE MODEL")
+                    self.minimize_surrogate_model()
                 self.current_particle = 0
+
             if self.complete() and not suppress_output:
                 msg =  "\nPoints: \n" + str(self.Gb) + "\n" + \
                     "Iterations: \n" + str(self.iter) + "\n" + \
                     "Flist: \n" + str(self.F_Gb) + "\n" + \
                     "Norm Flist: \n" + str(np.linalg.norm(self.F_Gb)) + "\n"
-                self.error_message_generator(msg)
+                self.debug_message_printout(msg)
 
 
     def export_swarm(self):
@@ -527,10 +609,10 @@ class swarm:
         return iteration, best_eval
         
     def get_optimized_soln(self):
-        return self.Gb 
+        return self.Gb.reshape(-1, 1) #standardization  
     
     def get_optimized_outs(self):
-        return self.F_Gb
+        return self.F_Gb[0] #correction for extra brackets that happen with the math/passing
     
     def absolute_mean_deviation_of_particles(self):
         mean_data = np.array(np.mean(self.M, axis=0)).reshape(1, -1)
@@ -541,8 +623,8 @@ class swarm:
         abs_mean_dev = np.linalg.norm(np.mean(abs_data,axis=0))
         return abs_mean_dev
 
-    def error_message_generator(self, msg):
+    def debug_message_printout(self, msg):
         if self.parent == None:
             print(msg)
         else:
-            self.parent.updateStatusText(msg)
+            self.parent.debug_message_printout(msg)

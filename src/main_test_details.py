@@ -10,11 +10,11 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous 
-#   Last update: November 28, 2024
+#   Last update: March 13, 2025
 ##--------------------------------------------------------------------\
 
 
-import numpy as np
+import pandas as pd
 import time
 from cat_swarm import swarm
 
@@ -33,7 +33,7 @@ class TestDetails():
         WEIGHTS = [[2, 2.2]]         # Update vector weights. Used as C1 constant in tracing mode.
                                      # NOTE: the weight vector MUST have the same shape as the LB 
                                      # and UB. 
-        E_TOL = 10 ** -6             # Convergence Tolerance
+        TOL = 10 ** -6             # Convergence Tolerance
         MAXIT = 5000                 # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
                                      #              3 = absorbing,   4 = invisible
@@ -71,23 +71,31 @@ class TestDetails():
 
         self.suppress_output = True   # Suppress the console output of particle swarm
 
-        detailedWarnings = False      # Optional boolean for detailed feedback
-                                        # (Independent of suppress output. 
-                                        #  Includes error messages and warnings)
-
         self.allow_update = True      # Allow objective call to update state 
 
 
+        # Constant variables
+        opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],     # Number of particles in swarm
+                    'BOUNDARY': [BOUNDARY],                     # int boundary 1 = random,      2 = reflecting
+                                                                #              3 = absorbing,   4 = invisible
+                    'WEIGHTS': [WEIGHTS],                       # Update vector weights
+                    'MR': [MR],                                 # Mixture Ratio (MR). Small value for tracing population %.
+                    'SMP': [SMP],                               # Seeking memory pool. Num copies of cats made.
+                    'SRD': [SRD],                               # Seeking range of the selected dimension. 
+                    'CDC': [CDC],                               # Counts of dimension to change. mutation.
+                    'SPC': [SPC],                               # self-position consideration. boolean.
+                    'BETA': [BETA] }                            # Float constant controlling influence 
+                                                                #     between the personal and global best positions
+        
+        opt_df = pd.DataFrame(opt_params)
+        self.mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
+                                func_F, constr_F,
+                                opt_df,
+                                parent=parent)     
+        
 
-        self.mySwarm = swarm(NO_OF_PARTICLES, LB, UB,
-                        WEIGHTS, OUT_VARS, TARGETS,
-                        E_TOL, MAXIT, BOUNDARY, func_F, constr_F,
-                        MR=MR, SMP=SMP, SRD=SRD, CDC=CDC, SPC=SPC,
-                        beta=BETA,
-                        parent=parent, detailedWarnings=detailedWarnings)
 
-
-    def updateStatusText(self, txt):
+    def debug_message_printout(self, txt):
         if txt is None:
             return
         # sets the string as it gets it
