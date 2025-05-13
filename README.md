@@ -21,10 +21,11 @@ This branch of the repository is part of a series of replication studies. It is 
     * [State Machine-based Structure](#state-machine-based-structure)
     * [Constraint Handling](#constraint-handling)
     * [Boundary Types](#boundary-types)
-    * [Multi-Object Optimization](#multi-object-optimization)
+    * [Multi-Objective Optimization](#multi-objective-optimization)
     * [Objective Function Handling](#objective-function-handling)
       * [Creating a Custom Objective Function](#creating-a-custom-objective-function)
       * [Internal Objective Function Example](internal-objective-function-example)
+      * [Target vs. Threshold Configuration](#target-vs-threshold-configuration)
 * [Examples](#example-implementations)
     * [Basic Swarm Example](#basic-swarm-example)
     * [Detailed Messages](#detailed-messages)
@@ -208,11 +209,8 @@ This is an example for if you've had a difficult time with the requirements.txt 
 
     # swarm setup
     best_eval = 1
-
-    parent = None            # for the PSO_TEST ONLY
-
+    parent = None            
     suppress_output = True   # Suppress the console output of particle swarm
-
     allow_update = True      # Allow objective call to update state 
 
     # Constant variables
@@ -303,8 +301,22 @@ This optimizer has 4 different types of bounds, Random (Particles that leave the
 
 Some updates have not incorporated appropriate handling for all boundary conditions. This bug is known and is being worked on. The most consistent boundary type at the moment is Random.  If constraints are violated, but bounds are not, currently random bound rules are used to deal with this problem. 
 
-### Multi-Object Optimization
+### Multi-Objective Optimization
 The no preference method of multi-objective optimization, but a Pareto Front is not calculated. Instead, the best choice (smallest norm of output vectors) is listed as the output.
+
+
+### Objective Function Handling
+
+The objective function is handled in two parts. 
+
+
+* First, a defined function, such as one passed in from `func_F.py` (see examples), is evaluated based on current particle locations. This allows for the optimizers to be utilized in the context of 1. benchmark functions from the objective function library, 2. user defined functions, 3. replacing explicitly defined functions with outside calls to programs such as simulations or other scripts that return a matrix of evaluated outputs. 
+
+* Secondly, the actual objective function is evaluated. In the AntennaCAT set of optimizers, the objective function evaluation is either a `TARGET` or `THRESHOLD` evaluation. For a `TARGET` evaluation, which is the default behavior, the optimizer minimizes the absolute value of the difference of the target outputs and the evaluated outputs. A `THRESHOLD` evaluation includes boolean logic to determine if a 'greater than or equal to' or 'less than or equal to' or 'equal to' relation between the target outputs (or thresholds) and the evaluated outputs exist. 
+
+Future versions may include options for function minimization when target values are absent. 
+
+
 
 #### Creating a Custom Objective Function
 
@@ -437,6 +449,42 @@ f(\mathbf{x}) = sin(5 * x^3) + cos(5 * x) * (1 - tanh(x^2))
 Local minima at $(0.444453, -0.0630916)$
 
 Global minima at $(0.974857, -0.954872)$
+
+
+### Target vs. Threshold Configuration
+
+An April 2025 feature is the user ability to toggle TARGET and THRESHOLD evaluation for the optimized values. The key variables for this are:
+
+```python
+# Boolean. use target or threshold. True = THRESHOLD, False = EXACT TARGET
+evaluate_threshold = True  
+
+# array
+TARGETS = func_configs.TARGETS    # Target values for output from function configs
+# OR:
+TARGETS = [0,0,0] #manually set BASED ON PROBLEM DIMENSIONS
+
+# threshold is same dims as TARGETS
+# 0 = use target value as actual target. value should EQUAL target
+# 1 = use as threshold. value should be LESS THAN OR EQUAL to target
+# 2 = use as threshold. value should be GREATER THAN OR EQUAL to target
+#DEFAULT THRESHOLD
+THRESHOLD = np.zeros_like(TARGETS) 
+# OR
+THRESHOLD = [0,1,2] # can be any mix of TARGET and THRESHOLD  
+```
+
+To implement this, the original `self.Flist` objective function calculation has been replaced with the function `objective_function_evaluation`, which returns a numpy array.
+
+The original calculation:
+```python
+self.Flist = abs(self.targets - self.Fvals)
+```
+Where `self.Fvals` is a re-arranged and error checked returned value from the passed in function from `func_F.py` (see examples for the internal objective function or creating a custom objective function). 
+
+When using a THRESHOLD, the `Flist` value corresponding to the target is set to epsilon (the smallest system value) if the evaluated `func_F` value meets the threshold condition for that target item. If the threshold is not met, the absolute value of the difference of the target output and the evaluated output is used. With a THRESHOLD configuration, each value in the numpy array is evaluated individually, so some values can be 'greater than or equal to' the target while others are 'equal' or 'less than or equal to' the target. 
+
+
 
 
 ## Example Implementations

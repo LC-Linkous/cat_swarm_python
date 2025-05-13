@@ -15,6 +15,8 @@
 
 
 import pandas as pd
+import numpy as np
+
 from cat_swarm import swarm
 
 # OBJECTIVE FUNCTION SELECTION
@@ -43,6 +45,17 @@ if __name__ == "__main__":
     IN_VARS = func_configs.IN_VARS          # Number of input variables (x-values)   
     OUT_VARS = func_configs.OUT_VARS        # Number of output variables (y-values)
     TARGETS = func_configs.TARGETS          # Target values for output
+    # target format. TARGETS = [0, ...] 
+
+    # threshold is same dims as TARGETS
+    # 0 = use target value as actual target. value should EQUAL target
+    # 1 = use as threshold. value should be LESS THAN OR EQUAL to target
+    # 2 = use as threshold. value should be GREATER THAN OR EQUAL to target
+    #DEFAULT THRESHOLD
+    #THRESHOLD = np.zeros_like(TARGETS) 
+    THRESHOLD = np.ones_like(TARGETS)
+    #THRESHOLD = [0, 1, 0]
+
 
     # Objective function dependent variables
     func_F = func_configs.OBJECTIVE_FUNC  # objective function
@@ -60,14 +73,11 @@ if __name__ == "__main__":
                                     #between the personal and global best positions
 
 
-    # swarm setup
     best_eval = 1
-
-    parent = None            # for the PSO_TEST ONLY
-
-    suppress_output = True   # Suppress the console output of particle swarm
-
-    allow_update = True      # Allow objective call to update state 
+    parent = None             # for the optimizer test ONLY
+    evaluate_threshold = True # use target or threshold. True = THRESHOLD, False = EXACT TARGET
+    suppress_output = True    # Suppress the console output of particle swarm
+    allow_update = True       # Allow objective call to update state 
 
     # Constant variables
     opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],     # Number of particles in swarm
@@ -86,7 +96,9 @@ if __name__ == "__main__":
     mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
                             func_F, constr_F,
                             opt_df,
-                            parent=parent)     
+                            parent=parent, 
+                            evaluate_threshold=evaluate_threshold, obj_threshold=THRESHOLD)  
+     
     
     # instantiation of particle swarm optimizer 
     while not mySwarm.complete():

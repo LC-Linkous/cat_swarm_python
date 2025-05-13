@@ -24,8 +24,8 @@ class swarm:
     # swarm([[float, float, ...]], [[float, float, ...]], [[float, ...]], float, int,
     # func, func,
     # dataFrame,
-    # class obj,
-    # bool, class obj) 
+    # class obj, 
+    # bool, [int, int, ...]) 
     #  
     # opt_df contains class-specific tuning parameters
     # NO_OF_PARTICLES: int
@@ -42,15 +42,29 @@ class swarm:
                 obj_func, constr_func, 
                 opt_df,
                 parent=None, 
-                useSurrogateModel=False, surrogateOptimizer=None): 
+                evaluate_threshold=False, obj_threshold=None):
         
 
         # Optional parent class func call to write out values that trigger constraint issues
         self.parent = parent 
-        # vars for using surrogate model
-        self.useSurrogateModel = useSurrogateModel # bool for if using surrogate model
-        self.surrogateOptimizer = surrogateOptimizer     # pass in the class for the surrogate model
-                                                   # optimizer. this is configured as needed 
+
+        #evaluation method for targets
+        # True: Evaluate as true targets
+        # False: Evaluate as thesholds based on information in obj_threshold
+        if evaluate_threshold==False:
+            self.evaluate_threshold = False
+            self.obj_threshold = None
+
+        else:
+            if not(len(obj_threshold) == len(targets)):
+                self.debug_message_printout("WARNING: THRESHOLD option selected.  +\
+                Dimensions for THRESHOLD do not match TARGET array. Defaulting to TARGET search.")
+                self.evaluate_threshold = False
+                self.obj_threshold = None
+            else:
+                self.evaluate_threshold = evaluate_threshold #bool
+                self.obj_threshold = np.array(obj_threshold).reshape(-1, 1) #np.array
+        
 
 
         #unpack the opt_df standardized vals
@@ -108,9 +122,6 @@ class swarm:
 
 
   
-
-
-
             for i in range(2,int(NO_OF_PARTICLES)+1):
                 
                 self.M = \
@@ -214,68 +225,9 @@ class swarm:
             self.evaluateCandidate = False 
 
 
-
-
             self.debug_message_printout("swarm successfully initialized")
             
-    def minimize_surrogate_model(self):
-        canUseSurrogate = False
-        if self.parent == None:
-            self.debug_message_printout("ERROR: no parent selected. cannot use surrogate model. continuing with optimization")
-            return canUseSurrogate
-        
-        if self.surrogateOptimizer == None:
-            self.debug_message_printout("ERROR: no second optimizer selected. cannot use surrogate model. continuing with optimization")
-            return canUseSurrogate           
 
-        try:
-
-            # call up to the parent function to define and fit the surrogate func, 
-            # and set up the surrogate optimizer 
-            surrogateOptimizer = self.parent.fit_and_create_surogate(self.M, self.F_Pb,self.surrogateOptimizer)
-
-
-            best_eval = 10 # set high for testing
-            # sometimes an optimizer doesn't call the objective function, so only print out when it does
-            last_iter = 0
-
-            while not surrogateOptimizer.complete():
-                # step through optimizer processing
-                surrogateOptimizer.step(suppress_output=False)
-
-                # call the objective function, control 
-                # when it is allowed to update and return 
-                # control to optimizer
-                surrogateOptimizer.call_objective(allow_update=True)
-                iter, eval = surrogateOptimizer.get_convergence_data()
-                if (eval < best_eval) and (eval != 0):
-                    best_eval = eval
-                if iter > last_iter:
-                    last_iter = iter
-
-            print("************************************************")
-            print("Internal Objective Function Iterations: " + str (iter))
-            print("Internal Best Eval: " + str(best_eval))
-
-            # check if G_best of surrogate optimizer is better than what the main optimizer is finding
-            potential_Gb =  np.array(surrogateOptimizer.get_optimized_soln()).reshape(1 ,-1)
-            potential_F_Gb =  np.array(surrogateOptimizer.get_optimized_outs()).reshape(1 ,-1)
-            if np.linalg.norm(potential_F_Gb) < np.linalg.norm(self.F_Gb):
-                self.F_Gb = np.array(potential_F_Gb)
-                self.Gb = np.array(potential_Gb[0])
-                print("NEW BEST!!!!!!")      
-                print("self.F_Gb")
-                print(self.F_Gb)
-                print("self.Gb")
-                print(self.Gb)
-            
-            canUseSurrogate = True
-            
-        except Exception as e:
-            print(e)
-            self.debug_message_printout("ERROR: failed to set up and minimize surrogate model")
-
-        return canUseSurrogate
     
     def call_objective(self, allow_update):
         if self.Active[self.current_particle]:
@@ -288,7 +240,8 @@ class swarm:
                 if noError == True:
                     self.Fvals = np.array(newFVals).reshape(-1, 1)
                     if allow_update:
-                        self.Flist = abs(self.targets - self.Fvals)
+                        # EVALUATE OBJECTIVE FUNCTION - TARGET OR THRESHOLD
+                        self.Flist = self.objective_function_evaluation(self.Fvals, self.targets)# abs(self.targets - self.Fvals)
                         self.iter = self.iter + 1
                         self.allow_update = 1
                     else:
@@ -310,7 +263,74 @@ class swarm:
 
 
             return noError# return is for error reporting purposes only
-  
+
+
+    def objective_function_evaluation(self, Fvals, targets):
+        #pass in the Fvals & targets so that it's easier to track bugs
+
+        # this uses the fitness values and target (or threshold) to determine the Flist values
+        # Option #1: TARGET
+        # get DISTANCE FROM TARGET
+        # Option #2: THRESHOLD
+        # use THRESHOLD TO DETERMINE INTEREST
+        # if threshold is met, the distance is set to a small value (epsilon).
+        #  Setting the 'distance' to epsilon, the convergence value check can
+        # also remain the same format. 
+
+
+        # testing different values of epsilon
+        epsilon = np.finfo(float).eps #smallest system constant
+        # Ex: 2.220446049250313e-16  
+        # #may be greater than tolerance if tolerance is set very low for testing
+        #epsilon = 10**-18
+        #epsilon = 0  # causes issues with imag. numbers
+
+        Flist = np.zeros(len(Fvals))
+
+
+        if self.evaluate_threshold == True: #THRESHOLD
+            ctr = 0
+            for i in targets:
+                o_thres = int(self.obj_threshold[ctr]) #force type as err check
+                t = targets[ctr]
+                fv = Fvals[ctr]
+
+                if o_thres == 0: #TARGET. default
+                    # sets Flist[ctr] as abs distance of  Fvals[ctr] from target
+                    Flist[ctr] = abs(t - fv)
+
+                elif o_thres == 1: #LESS THAN OR EQUAL 
+                    # checks if the Fvals[ctr] is LESS THAN OR EQUAL to target
+                    # if yes, then distance is 0 (considered 'on target)
+                    # if no, then Flist is abs distance of  Fvals[ctr] from target
+                    if fv <= t:
+                        Flist[ctr] = epsilon
+                    else:
+                        Flist[ctr] = abs(t - fv)
+
+                elif o_thres == 2: #GREATER THAN OR EQUAL
+                    # checks if the Fvals[ctr] is GREATER THAN OR EQUAL to target
+                    # if yes, then distance is 0 (considered 'on target)
+                    # if no, then Flist is abs distance of  Fvals[ctr] from target
+                    if fv >= t:
+                        Flist[ctr] = epsilon
+                    else:
+                        Flist[ctr] = abs(t - fv)
+
+                else: #o_thres == 0. #TARGET. default
+                    self.parent.debug_message_printout("ERROR: unrecognized threshold value. Evaluating as TARGET")
+                    Flist[ctr] = abs(t - fv)
+
+                ctr = ctr + 1
+
+        else: #TARGET as default
+            # arrays are already the same dimensions. 
+            # no need to loop and compare to anything
+            Flist = abs(targets - Fvals)
+
+        return Flist
+
+
 
 
     def seeking_mode_create_candidates(self, particle):
@@ -540,9 +560,6 @@ class swarm:
             if self.doneCandidateIteration == True:
                 self.current_particle = self.current_particle + 1
             if self.current_particle == self.number_of_particles:
-                if self.useSurrogateModel == True:
-                    print("MINIMIZING SURROGATE MODEL")
-                    self.minimize_surrogate_model()
                 self.current_particle = 0
 
             if self.complete() and not suppress_output:
