@@ -487,7 +487,7 @@ class swarm:
         return convergence
     
     def maxed(self):
-        max_iter = self.iter > self.maxit
+        max_iter = self.iter >= self.maxit
         return max_iter
     
     def complete(self):
