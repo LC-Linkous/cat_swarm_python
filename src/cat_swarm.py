@@ -24,7 +24,8 @@ class swarm:
     # func, func,
     # dataFrame,
     # class obj, 
-    # bool, [int, int, ...]) 
+    # bool, [int, int, ...], 
+    # int) 
     #  
     # opt_df contains class-specific tuning parameters
     # NO_OF_PARTICLES: int
@@ -42,10 +43,16 @@ class swarm:
                  obj_func, constr_func, 
                  opt_df,
                  parent=None, 
-                 evaluate_threshold=False, obj_threshold=None): 
+                 evaluate_threshold=False, obj_threshold=None,
+                 decimal_limit = 4): 
         
         # Optional parent class func call to write out values that trigger constraint issues
         self.parent = parent 
+
+        self.number_decimals = int(decimal_limit)  # limit the number of decimals
+                                        # used in cases where real life has limitations on resolution
+
+
 
         #evaluation method for targets
         # True: Evaluate as true targets
@@ -113,25 +120,25 @@ class swarm:
 
             #randomly initialize the positions and velocities of the cats
             # position
-            self.M = np.array(np.multiply(self.rng.random((1,np.max([heightl, widthl]))), 
-                                                                variation)+lbound)    
+            self.M = np.round(np.array(np.multiply(self.rng.random((1,np.max([heightl, widthl]))), variation)+lbound), self.number_decimals)   
 
             # velocity
-            self.V = np.array(np.multiply(self.rng.random((1,np.max([heightl,widthl]))), 
-                                                                     vlimit))
+            self.V  = np.round(np.array(np.multiply(self.rng.random((1,np.max([heightl,widthl]))), vlimit)), self.number_decimals)   
+            
 
             for i in range(2,int(NO_OF_PARTICLES)+1):
                 
+                M = np.round(np.array(np.multiply(self.rng.random((1,np.max([heightl, widthl]))), variation)+lbound), self.number_decimals)    
+
+                V = np.round(np.array(np.multiply(self.rng.random((1,np.max([heightl,widthl]))), vlimit)), self.number_decimals)   
+
                 self.M = \
                     np.vstack([self.M, 
-                               np.multiply( self.rng.random((1,np.max([heightl, widthl]))), 
-                                                                               variation) 
-                                                                               + lbound])
+                               M])
 
                 self.V = \
                     np.vstack([self.V,
-                               np.multiply( self.rng.random((1,np.max([heightl, widthl]))), 
-                                                                               vlimit)])
+                               V])    
            
             
             #randomly classify cats into seeking or tracing. 
@@ -406,10 +413,10 @@ class swarm:
         old_V = self.V[particle]
         new_V = np.add(old_V, self.rng.random()*np.hstack(self.weights)*np.subtract(np.hstack(self.Gb), self.M[particle]))
 
-        self.V[particle] = 1.0*new_V # multiply so not just a mem. address copy
+        self.V[particle] = np.round(new_V, self.number_decimals) # multiply so not just a mem. address copy
         # new location
         # new_M = old_M + new_V
-        self.M[particle] = self.M[particle]+new_V
+        self.M[particle] = np.round(self.M[particle]+new_V)
 
     
     def check_bounds(self, particle):
@@ -427,12 +434,16 @@ class swarm:
         # and may cause a buffer overflow with large exponents (a bug that was found experimentally)
         update = self.check_bounds(particle) or not self.constr_func(self.M[particle])
         if update > 0:
-            while(self.check_bounds(particle)>0) or (self.constr_func(self.M[particle])==False): 
-                variation = self.ubound-self.lbound
-                self.M[particle] = \
-                    np.squeeze(self.rng.random() * 
-                                np.multiply(np.ones((1,np.shape(self.M)[1])),
-                                            variation) + self.lbound)
+            while (self.check_bounds(particle) > 0) or (self.constr_func(self.M[particle]) == False):
+                variation = self.ubound - self.lbound
+                self.M[particle] = np.round(
+                    np.squeeze(
+                        self.rng.random() *
+                        np.multiply(np.ones((1, np.shape(self.M)[1])), variation) +
+                        self.lbound
+                    ), self.number_decimals)
+
+
             
     def reflecting_bound(self, particle):        
         update = self.check_bounds(particle)
