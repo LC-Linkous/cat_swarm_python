@@ -184,7 +184,10 @@ This is an example for if you've had a difficult time with the requirements.txt 
     mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
                             func_F, constr_F,
                             opt_df,
-                            parent=parent)  
+                            parent=parent,
+                            evaluate_threshold=False, obj_threshold=None,
+                            decimal_limit = 4)
+
 
 
 
@@ -192,7 +195,9 @@ This is an example for if you've had a difficult time with the requirements.txt 
     # swarm([[float, float, ...]], [[float, float, ...]], [[float, ...]], float, int,
     # func, func,
     # dataFrame,
-    # class obj) 
+    # class obj, 
+    # bool, [int, int, ...], 
+    # int) 
     #  
     # opt_df contains class-specific tuning parameters
     # NO_OF_PARTICLES: int
