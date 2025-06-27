@@ -10,7 +10,7 @@
 #       for integration in the AntennaCAT GUI.
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: March 13, 2025
+#   Last update: June 27, 2025
 ##--------------------------------------------------------------------\
 
 
@@ -29,7 +29,6 @@ class TestDetails():
     def __init__(self):
         # swarm variables
         NO_OF_PARTICLES = 8          # Number of particles in swarm
-        WEIGHTS = [[2, 2.2, 2]]      # Update vector weights. Used as C1 constant in tracing mode.
         TOL = 10 ** -4             # Convergence Tolerance
         MAXIT = 10000                # Maximum allowed iterations
         BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
@@ -63,9 +62,9 @@ class TestDetails():
 
         # Constant variables
         opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],  # Number of particles in swarm
-                    'BOUNDARY': [BOUNDARY],                  # int boundary 1 = random,      2 = reflecting
+                    'BOUNDARY': [BOUNDARY]}                  # int boundary 1 = random,      2 = reflecting
                                                             #              3 = absorbing,   4 = invisible
-                    'WEIGHTS': [WEIGHTS]}                    # Update vector weights
+
 
         opt_df = pd.DataFrame(opt_params)
         self.mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
