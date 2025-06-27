@@ -82,45 +82,73 @@ This is an example for if you've had a difficult time with the requirements.txt 
 ### Initialization 
 
 ```python
-    # Constant variables
-    NO_OF_PARTICLES = 11         # Number of particles in swarm
-    TOL = 10 ** -18              # Convergence Tolerance
+    # swarm variables
+    NO_OF_PARTICLES = 8          # Number of particles in swarm
+    WEIGHTS = [2]                # Update vector weights. Used as C1 constant in tracing mode.
+    VLIM = 1.5                   # Initial velocity limit
+    TOL = 10 ** -8               # Convergence Tolerance
     MAXIT = 10000                # Maximum allowed iterations
     BOUNDARY = 1                 # int boundary 1 = random,      2 = reflecting
-                                 #              3 = absorbing,   4 = invisible
+                                 #              3 = absorbing,   4 = invisible 
+    
+    
+    # Objective function dependent variables
+    LB = func_configs.LB                    # Lower boundaries, [[0.21, 0, 0.1]]
+    UB = func_configs.UB                    # Upper boundaries, [[1, 1, 0.5]]
+    IN_VARS = func_configs.IN_VARS          # Number of input variables (x-values)   
+    OUT_VARS = func_configs.OUT_VARS        # Number of output variables (y-values)
+    TARGETS = func_configs.TARGETS          # Target values for output
+    # target format. TARGETS = [0, ...] 
+
+    # threshold is same dims as TARGETS
+    # 0 = use target value as actual target. value should EQUAL target
+    # 1 = use as threshold. value should be LESS THAN OR EQUAL to target
+    # 2 = use as threshold. value should be GREATER THAN OR EQUAL to target
+    #DEFAULT THRESHOLD
+    #THRESHOLD = np.zeros_like(TARGETS) 
+    THRESHOLD = np.ones_like(TARGETS)
+    #THRESHOLD = [0, 1, 0]
+
 
     # Objective function dependent variables
     func_F = func_configs.OBJECTIVE_FUNC  # objective function
     constr_F = func_configs.CONSTR_FUNC   # constraint function
 
-    LB = func_configs.LB              # Lower boundaries, [[0.21, 0, 0.1]]
-    UB = func_configs.UB              # Upper boundaries, [[1, 1, 0.5]]   
-    OUT_VARS = func_configs.OUT_VARS  # Number of output variables (y-values)
-    TARGETS = func_configs.TARGETS    # Target values for output
+    
+    # cat swarm specific
+    MR = .02                    # Mixture Ratio (MR). Small value for tracing population %.
+    SMP = 5                     # Seeking memory pool. Num copies of cats made.
+    SRD = .45                   # Seeking range of the selected dimension. 
+    CDC = 2                     # Counts of dimension to change. mutation.
+    SPC = True                  # self-position consideration. boolean.
 
-    # optimizer constants
-    WEIGHTS = [[0.5, 0.7, 0.78]]       # Update vector weights
-    VLIM = 1                           # Initial velocity limit
-
+    # swarm setup
     best_eval = 1
-    parent = None            # for the optimizer test ONLY
-    suppress_output = True   # Suppress the console output of particle swarm
-    allow_update = True      # Allow objective call to update state 
+    parent = None             # for the optimizer test ONLY
+    evaluate_threshold = False # use target or threshold. True = THRESHOLD, False = EXACT TARGET
+    suppress_output = True    # Suppress the console output of particle swarm
+    allow_update = True       # Allow objective call to update state 
 
     # Constant variables
-    opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES], # Number of particles in swarm
-                'BOUNDARY': [BOUNDARY],                 # int boundary 1 = random,      2 = reflecting
-                                                        #   3 = absorbing,   4 = invisible
-                'WEIGHTS': [WEIGHTS],                   # Update vector weights
-                'VLIM':  [VLIM] }                       # Initial velocity limit
+    opt_params = {'NO_OF_PARTICLES': [NO_OF_PARTICLES],     # Number of particles in swarm
+                'BOUNDARY': [BOUNDARY],                     # int boundary 1 = random,      2 = reflecting
+                                                            #              3 = absorbing,   4 = invisible
+                'WEIGHTS': [WEIGHTS],                       # Update vector weights
+                'VLIM':  [VLIM],                            # Initial velocity limit
+                'MR': [MR],                                 # Mixture Ratio (MR). Small value for tracing population %.
+                'SMP': [SMP],                               # Seeking memory pool. Num copies of cats made.
+                'SRD': [SRD],                               # Seeking range of the selected dimension. 
+                'CDC': [CDC],                               # Counts of dimension to change. mutation.
+                'SPC': [SPC]}                                # self-position consideration. boolean.
 
     opt_df = pd.DataFrame(opt_params)
-    myOptimizer = swarm(LB, UB, TARGETS, TOL, MAXIT,
+    mySwarm = swarm(LB, UB, TARGETS, TOL, MAXIT,
                             func_F, constr_F,
                             opt_df,
                             parent=parent, 
-                            evaluate_threshold=False, obj_threshold=None,
-                            decimal_limit = 4):   
+                            evaluate_threshold=evaluate_threshold, obj_threshold=THRESHOLD)       
+
+
 
     # arguments should take the form: 
     # swarm([[float, float, ...]], [[float, float, ...]], [[float, ...]], float, int,
@@ -134,7 +162,11 @@ This is an example for if you've had a difficult time with the requirements.txt 
     # NO_OF_PARTICLES: int
     # weights: [[float, float, float]]
     # boundary: int. 1 = random, 2 = reflecting, 3 = absorbing,   4 = invisible
-    # vlim: float
+    # MR: float. Small value
+    # SMP: int
+    # SRD: float
+    # CDC: int
+    # SPC: bool
 
 ```
 
