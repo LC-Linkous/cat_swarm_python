@@ -15,6 +15,7 @@ Now featuring AntennaCAT hooks for GUI integration and user input handling.
 * [Implementation](#implementation)
     * [Initialization](#initialization) 
     * [State Machine-based Structure](#state-machine-based-structure)
+    * [Importing and Exporting Optimizer State](#importing-and-exporting-optimizer-state)
     * [Constraint Handling](#constraint-handling)
     * [Boundary Types](#boundary-types)
     * [Multi-Objective Optimization](#multi-objective-optimization)
@@ -247,6 +248,31 @@ The code below is an example of this process:
                 print(iter)
                 print("Best Eval")
                 print(best_eval)
+```
+
+
+### Importing and Exporting Optimizer State
+
+Some optimizer information can be exported or imported. This varies based on each optimizer.
+
+Optimizer state can be exported at any step. When importing an optimizer state, the optimizer should be initialized first, and then the state information can be imported via a Python pickle file. Other methods can be used if custom code is written to handle preprocessing.
+
+
+Returning data from optimizer and saving to a .pkl file:
+```python
+    data = demo_optimizer.export_swarm()
+    data_df = pd.DataFrame(data)
+    print(data_df)
+    data_df.to_pickle('output_data_df.pkl')
+
+```
+
+
+Importing data from a .pkl file and importing it into the optimizer:
+```python
+    data_df = pd.read_pickle('output_data_df.pkl') 
+    demo_optimizer.import_swarm(data_df)
+
 ```
 
 
