@@ -8,7 +8,7 @@
 #       
 #
 #   Author(s): Lauren Linkous, Jonathan Lundquist
-#   Last update: June 19, 2025
+#   Last update: June 6, 2026
 ##--------------------------------------------------------------------\
 
 
@@ -214,9 +214,9 @@ class swarm:
         if self.evaluate_threshold == True: #THRESHOLD
             ctr = 0
             for i in targets:
-                o_thres = int(self.obj_threshold[ctr]) #force type as err check
-                t = targets[ctr]
-                fv = Fvals[ctr]
+                o_thres = int(self.obj_threshold[ctr].item()) #force type as err check (NumPy 2 safe)
+                t = targets[ctr].item()
+                fv = Fvals[ctr].item()
 
                 if o_thres == 0: #TARGET. default
                     # sets Flist[ctr] as abs distance of  Fvals[ctr] from target
