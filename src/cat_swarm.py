@@ -9,7 +9,7 @@
 #       
 #
 #   Author(s): Lauren Linkous
-#   Last update: June 27, 2025
+#   Last update: June 6, 2026
 ##--------------------------------------------------------------------\
 
 
@@ -297,9 +297,9 @@ class swarm:
         if self.evaluate_threshold == True: #THRESHOLD
             ctr = 0
             for i in targets:
-                o_thres = int(self.obj_threshold[ctr]) #force type as err check
-                t = targets[ctr]
-                fv = Fvals[ctr]
+                o_thres = int(self.obj_threshold[ctr].item()) #force type as err check (NumPy 2 safe)
+                t = targets[ctr].item()
+                fv = Fvals[ctr].item()
 
                 if o_thres == 0: #TARGET. default
                     # sets Flist[ctr] as abs distance of  Fvals[ctr] from target
@@ -616,7 +616,7 @@ class swarm:
             'create_candidate_set': [self.createCandidateSet],
             'candidate_ctr': [self.candidateCtr],          
             'candidate_positions': [self.candidate_positions],
-            'candidate_probabiity': [self.candidate_probability],     
+            'candidate_probability': [self.candidate_probability],     
             'fitness_values': [self.fitness_values],
             'done_candidate_iter': [self.doneCandidateIteration],    
             'eval_candidate': [self.evaluateCandidate],
@@ -670,7 +670,7 @@ class swarm:
         self.createCandidateSet = bool(swarm_export['create_candidate_set'][0]) 
         self.candidateCtr = int(swarm_export['candidate_ctr'][0])              
         self.candidate_positions = np.array(swarm_export['candidate_positions'][0]) 
-        self.candidate_probability = (swarm_export['candidate_probabiity'][0])    
+        self.candidate_probability = np.array(swarm_export['candidate_probability'][0])    
         self.fitness_values = np.array(swarm_export['fitness_values'][0]) 
         self.doneCandidateIteration = bool(swarm_export['done_candidate_iter'][0])      
         self.evaluateCandidate = bool(swarm_export['eval_candidate'][0])   

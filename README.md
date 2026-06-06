@@ -142,22 +142,19 @@ This project requires numpy, pandas, and matplotlib for the full demos. To run t
 Use 'pip install -r requirements.txt' to install the following dependencies:
 
 ```python
-contourpy==1.2.1
+contourpy==1.3.3
 cycler==0.12.1
-fonttools==4.51.0
-importlib_resources==6.4.0
-kiwisolver==1.4.5
-matplotlib==3.8.4
-numpy==1.26.4
-packaging==24.0
-pandas==2.2.3
-pillow==10.3.0
-pyparsing==3.1.2
+fonttools==4.63.0
+kiwisolver==1.5.0
+matplotlib==3.10.9
+numpy==2.4.6
+packaging==26.2
+pandas==3.0.3
+pillow==12.2.0
+pyparsing==3.3.2
 python-dateutil==2.9.0.post0
-pytz==2025.1
-six==1.16.0
-tzdata==2025.1
-zipp==3.18.1
+six==1.17.0
+tzdata==2026.2
 
 ```
 
